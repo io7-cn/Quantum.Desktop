@@ -1,0 +1,104 @@
+@namespace Quantum.Components
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="global-install-surface">
+    <CascadingValue Value="this" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+
+    <div @ref="_dropOverlay" class="global-plugin-drop-overlay" aria-hidden="true">
+        <InputFile @key="_fileInputKey"
+                   @ref="_packageInput"
+                   class="global-plugin-drop-input"
+                   accept=".zip,application/zip,application/x-zip-compressed"
+                   disabled="@_isProcessing"
+                   aria-label="@L["DropToInstallThePluginBundle"]"
+                   OnChange="PrepareInstallAsync" />
+        <div class="global-drop-prompt">
+            <span class="global-drop-icon">⇩</span>
+            <p class="eyebrow">@L["INSTALLPLUGINS"]</p>
+            <strong>@(_isProcessing ? L["ProcessingPluginPackage"] : L["DropToScanThePluginBundle"])</strong>
+        </div>
+    </div>
+
+    @if (_pendingPreview is { } preview)
+    {
+        <div class="dialog-backdrop global-install-dialog-backdrop">
+            <section class="unload-dialog install-dialog"
+                     role="alertdialog"
+                     aria-modal="true"
+                     aria-labelledby="install-dialog-title">
+                <p class="eyebrow">@L["INSTALLPLUGINS"]</p>
+                <h2 id="install-dialog-title">
+                    @(preview.CanInstall ? GetInstallHeading(preview.InstallCount) : L["ThisPluginPackageCannotBeInstalled"])
+                </h2>
+                <p class="dialog-note">@preview.ArchiveFileName</p>
+
+                @if (preview.Plugins.Count > 0)
+                {
+                    <ul class="install-preview-list">
+                        @foreach (var plugin in preview.Plugins)
+                        {
+                            <li>
+                                <div>
+                                    <strong>@plugin.PluginId</strong>
+                                    <span>@GetInstallVersionText(plugin)</span>
+                                </div>
+                                <span class="install-action @GetInstallActionClass(plugin.Action)">
+                                    @GetInstallActionText(plugin.Action)
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                }
+
+                @if (preview.Issues.Count > 0)
+                {
+                    <div class="install-issues">
+                        <strong>@L["CompatibilityCheckFailed"]</strong>
+                        <ul>
+                            @foreach (var issue in preview.Issues)
+                            {
+                                <li>
+                                    @if (!string.IsNullOrWhiteSpace(issue.PluginId))
+                                    {
+                                        <code>@issue.PluginId</code>
+                                    }
+                                    @issue.Reason
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <p class="dialog-note">@L["YourCurrentPluginsWillBeKeptIfInstallation"]</p>
+                }
+
+                <div class="dialog-actions">
+                    <button type="button" class="secondary-button" disabled="@_isProcessing" @onclick="CancelPreviewAsync">
+                        @(preview.CanInstall ? L["Cancel"] : L["Close"])
+                    </button>
+                    @if (preview.CanInstall)
+                    {
+                        <button type="button"
+                                class="primary-button"
+                                disabled="@_isProcessing"
+                                @onclick="ConfirmInstallAsync">
+                            @(_isProcessing ? L["Installing"] : L["ConfirmInstall"])
+                        </button>
+                    }
+                </div>
+            </section>
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(_operationMessage))
+    {
+        <div class="global-operation-message @(_operationSucceeded ? "success" : "error")"
+             role="status">
+            <span>@_operationMessage</span>
+            <button type="button" aria-label="@L["DismissMessage"]" @onclick="DismissMessage">×</button>
+        </div>
+    }
+</div>

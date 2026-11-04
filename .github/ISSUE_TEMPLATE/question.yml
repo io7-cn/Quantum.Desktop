@@ -1,0 +1,35 @@
+name: ❓ 问题咨询
+description: 提出一个使用相关的问题
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        在提问之前，请确保您已经：
+        1. 搜索了现有的 issues
+        2. 阅读了项目文档
+        3. 查看了常见问题解答
+
+  - type: textarea
+    id: question
+    attributes:
+      label: 您的问题是什么？
+      description: 请清晰地描述您的问题
+      placeholder: "请详细描述您的问题..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 相关上下文
+      description: 添加任何与您的问题相关的上下文或截图
+      placeholder: "例如：使用场景、版本信息等"
+
+  - type: textarea
+    id: attempted
+    attributes:
+      label: 已尝试的解决方案
+      description: 您已经尝试过哪些解决方案？
+      placeholder: "列出您已经尝试过的方法..."

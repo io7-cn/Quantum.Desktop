@@ -1,0 +1,74 @@
+@namespace Quantum.Components.Pages
+@page "/{**PluginPath}"
+@implements IDisposable
+@inject PluginCatalog PluginCatalog
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<AppStrings> L
+
+@if (_route is null)
+{
+    <div class="empty-state">
+        <p class="eyebrow">@L["PLUGINROUTE"]</p>
+        <h1>@L["PluginPageNotFound"]</h1>
+        <p>@L["NoPluginRegisteredAPageFor"] <code>@CurrentPath</code> @L["RegisteredPageSentenceEnd"]</p>
+        <a class="primary-button" href="/settings">@L["OpenSettings"]</a>
+    </div>
+}
+else
+{
+    @if (_route.ComponentType is not null)
+    {
+        <DynamicComponent @key="PluginRenderKey" Type="_route.ComponentType" />
+    }
+    else if (_plugin is not null)
+    {
+        <WebPluginView @key="PluginRenderKey" Plugin="_plugin" Route="_route" />
+    }
+}
+
+@code {
+    [Parameter]
+    public string? PluginPath { get; set; }
+
+    [CascadingParameter(Name = "CultureName")]
+    public string CultureName { get; set; } = CultureService.EnglishCultureName;
+
+    private PluginRouteRegistration? _route;
+    private LoadedPlugin? _plugin;
+
+    private string PluginRenderKey => $"{_plugin?.RuntimeId:N}:{CultureName}";
+
+    private string CurrentPath => $"/{PluginPath ?? string.Empty}".TrimEnd('/');
+
+    protected override void OnInitialized()
+    {
+        PluginCatalog.Changed += OnCatalogChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        ResolveRoute();
+    }
+
+    public void Dispose()
+    {
+        PluginCatalog.Changed -= OnCatalogChanged;
+    }
+
+    private void ResolveRoute()
+    {
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        var path = $"/{relativePath.Split('?', '#')[0]}";
+        _route = PluginCatalog.FindRoute(path);
+        _plugin = _route is null ? null : PluginCatalog.FindPlugin((string)_route.PluginId);
+    }
+
+    private void OnCatalogChanged(object? sender, EventArgs eventArgs)
+    {
+        _ = InvokeAsync(() =>
+        {
+            ResolveRoute();
+            StateHasChanged();
+        });
+    }
+}

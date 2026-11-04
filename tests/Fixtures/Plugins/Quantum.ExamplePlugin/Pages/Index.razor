@@ -1,0 +1,43 @@
+@namespace Quantum.ExamplePlugin.Pages
+@using Quantum.ExamplePlugin
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.Extensions.Localization
+@using Quantum.ExamplePlugin.Localization
+@inject IStringLocalizer<PluginStrings> L
+
+<PageTitle>@L["ExamplePlugin"] · Quantum</PageTitle>
+
+<section class="example-plugin">
+    <p class="example-kicker">@L["ExampleEyebrow"]</p>
+    <h1>@L["ExamplePlugin"]</h1>
+    <p class="example-lead">@L["ExampleLead"]</p>
+
+    <div class="example-grid">
+        <article>
+            <span>@L["StartedAt"]</span>
+            <strong>@(State.StartedAt?.ToString("T") ?? L["Waiting"].Value)</strong>
+        </article>
+        <article>
+            <span>@L["WebPlugin"]</span>
+            <strong>@(State.WebPluginAvailable ? L["Available"] : L["NotInstalled"])</strong>
+        </article>
+        <article>
+            <span>@L["Connections"]</span>
+            <strong>@State.WebHandshakeCount</strong>
+            <p>
+                @(State.LastWebPluginId is null
+                    ? L["WaitingForWebPlugin"]
+                    : L["LastConnectionArg", State.LastWebPluginId])
+            </p>
+        </article>
+    </div>
+</section>
+
+@code {
+    private readonly IExamplePluginState State;
+
+    public Index(IExamplePluginState state)
+    {
+        State = state;
+    }
+}

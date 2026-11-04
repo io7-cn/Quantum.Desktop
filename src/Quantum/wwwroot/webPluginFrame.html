@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'unsafe-inline' blob:; style-src 'unsafe-inline' https: http:; img-src data: blob: https: http:; font-src data: https: http:" />
+  <style>
+    html, body, #quantum-root { width: 100%; min-height: 100%; margin: 0; }
+    * { box-sizing: border-box; scrollbar-width: none; -ms-overflow-style: none; }
+    *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+  </style>
+</head>
+<body>
+  <main id="quantum-root"></main>
+  <script>
+    (() => {
+      "use strict";
+
+      const channel = "quantum-web-plugin";
+      const runtimeId = "__QUANTUM_RUNTIME_ID__";
+      const root = document.getElementById("quantum-root");
+      const pendingRpc = new Map();
+      const eventSubscriptions = new Map();
+      let definition = null;
+      let context = null;
+      let lifecycleController = null;
+      let mountController = null;
+      let activationCleanup = null;
+      let mountCleanup = null;
+      let requestSequence = 0;
+
+      const post = (type, payload = {}) => parent.postMessage({
+        channel,
+        runtimeId,
+        type,
+        ...payload
+      }, "*");
+
+      const containsFiles = event => Array.from(event.dataTransfer?.types ?? [])
+        .some(type => String(type).toLowerCase() === "files");
+      addEventListener("dragenter", event => {
+        if (containsFiles(event)) {
+          event.preventDefault();
+          post("host-file-drag-enter");
+        }
+      }, true);
+      addEventListener("dragover", event => {
+        if (containsFiles(event)) {
+          event.preventDefault();
+        }
+      }, true);
+      addEventListener("drop", event => {
+        if (containsFiles(event)) {
+          event.preventDefault();
+        }
+      }, true);
+
+      const errorMessage = error => error instanceof Error ? error.message : String(error);
+
+      const hostRpc = (capability, method, args = {}, options = {}) => {
+        const requestId = globalThis.crypto?.randomUUID?.()
+          ?? `${Date.now()}-${++requestSequence}`;
+        const signal = options.signal;
+        if (signal?.aborted) {
+          return Promise.reject(signal.reason ?? new DOMException("Aborted", "AbortError"));
+        }
+
+        return new Promise((resolve, reject) => {
+          const abort = () => {
+            pendingRpc.delete(requestId);
+            post("rpc-cancel", { requestId });
+            reject(signal.reason ?? new DOMException("Aborted", "AbortError"));
+          };
+          signal?.addEventListener("abort", abort, { once: true });
+          pendingRpc.set(requestId, {
+            resolve: value => {
+              signal?.removeEventListener("abort", abort);
+              resolve(value);
+            },
+            reject: error => {
+              signal?.removeEventListener("abort", abort);
+              reject(error);
+            }
+          });
+          post("rpc", { requestId, capability, method, arguments: args });
+        });
+      };
+
+      const assetUrl = (base, path) => {
+        if (typeof path !== "string"
+          || path.length === 0
+          || path.startsWith("/")
+          || path.includes("\\")
+          || path.includes(":")
+          || path.split("/").some(segment => segment.length === 0 || segment === "." || segment === "..")) {
+          throw new Error("Asset paths must be non-empty relative paths.");
+        }
+
+        const baseUrl = new URL(base);
+        const resolved = new URL(path, baseUrl);
+        if (resolved.origin !== baseUrl.origin || !resolved.pathname.startsWith(baseUrl.pathname)) {
+          throw new Error("Asset path escapes the plugin asset directory.");
+        }
+        return resolved.href;
+      };
+
+      const publishEvent = (capabilityName, payload, options) => {
+        if (payload === undefined) {
+          return Promise.reject(new TypeError("A publication payload cannot be undefined."));
+        }
+        return hostRpc("notify", "publish", { capabilityName, payload }, options);
+      };
+
+      const subscribeEvent = async (capabilityName, handler, options) => {
+        if (typeof handler !== "function") {
+          throw new TypeError("A subscription handler must be a function.");
+        }
+
+        const subscriptionId = globalThis.crypto?.randomUUID?.()
+          ?? `event-${Date.now()}-${++requestSequence}`;
+        let disposed = false;
+        const subscription = Object.freeze({
+          capabilityName,
+          async dispose() {
+            if (disposed) {
+              return;
+            }
+            disposed = true;
+            try {
+              await hostRpc("notify", "unsubscribe", { subscriptionId });
+            } finally {
+              eventSubscriptions.delete(subscriptionId);
+            }
+          }
+        });
+        eventSubscriptions.set(subscriptionId, { handler, subscription });
+        try {
+          await hostRpc("notify", "subscribe", { capabilityName, subscriptionId, order: options?.order }, options);
+          return subscription;
+        } catch (error) {
+          try {
+            await subscription.dispose();
+          } catch {
+            // Runtime release covers a race with a cancelled subscription.
+          }
+          throw error;
+        }
+      };
+
+      const requestCapability = (capabilityName, payload, context, options) => {
+        if (payload === undefined) {
+          return Promise.reject(new TypeError("A request payload cannot be undefined."));
+        }
+        return hostRpc("request", "request", { capabilityName, payload, context }, options);
+      };
+
+      const disposeEventSubscriptions = async () => {
+        const subscriptions = [...eventSubscriptions.values()]
+          .map(entry => entry.subscription);
+        await Promise.allSettled(subscriptions.map(subscription => subscription.dispose()));
+        eventSubscriptions.clear();
+      };
+
+      const createContext = metadata => Object.freeze({
+        plugin: Object.freeze({
+          id: metadata.pluginId,
+          version: metadata.version,
+          runtimeId: metadata.runtimeId
+        }),
+        signal: lifecycleController.signal,
+        mobile: Object.freeze({
+          publish: page => hostRpc("mobile", "publish", { page }),
+          remove: pageId => hostRpc("mobile", "remove", { pageId })
+        }),
+        capabilities: Object.freeze({
+          catalog: async options => {
+            const result = await requestCapability("quantum.capabilities.list", {}, {}, options);
+            if (!result.isSuccess) return result;
+            const [outcome] = result.value.outcomes;
+            return result.value.outcomes.length === 1 && outcome?.status === "handled" && outcome.value != null
+              ? { ...result, value: outcome.value }
+              : { isSuccess: false, errorCode: outcome?.errorCode ?? "capability_catalog_unavailable",
+                  message: outcome?.message ?? "The capability catalog is unavailable.", extra: outcome?.extra };
+          }
+        }),
+        notify: Object.freeze({
+          publish: (capabilityName, payload, options) => publishEvent(capabilityName, payload, options),
+          subscribe: (capabilityName, handler, options) => subscribeEvent(capabilityName, handler, options)
+        }),
+        request: (name, payload, context = {}, options) => requestCapability(name, payload, context, options),
+        log: Object.freeze({
+          trace: message => hostRpc("log", "trace", { message }),
+          debug: message => hostRpc("log", "debug", { message }),
+          info: message => hostRpc("log", "info", { message }),
+          warn: message => hostRpc("log", "warn", { message }),
+          error: message => hostRpc("log", "error", { message })
+        }),
+        navigation: Object.freeze({
+          navigate: href => hostRpc("navigation", "navigate", { href })
+        }),
+        environment: Object.freeze({
+          snapshot: () => hostRpc("environment", "snapshot")
+        }),
+        assets: Object.freeze({
+          url: path => assetUrl(metadata.assetBaseUrl, path),
+          readText: (path, options) => hostRpc("assets", "readText", { path }, options)
+        })
+      });
+
+      const unmount = async () => {
+        mountController?.abort();
+        mountController = null;
+        await runCleanup(mountCleanup);
+        mountCleanup = null;
+        if (definition && typeof definition.unmount === "function") {
+          await definition.unmount(context);
+        }
+        root.replaceChildren();
+      };
+
+      addEventListener("message", async event => {
+        const message = event.data;
+        if (event.source !== parent
+          || !message
+          || message.channel !== channel
+          || message.runtimeId !== runtimeId) {
+          return;
+        }
+
+        if (message.type === "rpc-result" || message.type === "rpc-error") {
+          const pending = pendingRpc.get(message.requestId);
+          if (!pending) {
+            return;
+          }
+          pendingRpc.delete(message.requestId);
+          if (message.type === "rpc-result") {
+            pending.resolve(message.result);
+          } else {
+            pending.reject(new Error(message.message ?? "RPC failed."));
+          }
+          return;
+        }
+
+        if (message.type === "eventbus-event") {
+          const entry = eventSubscriptions.get(message.subscriptionId);
+          if (!entry) {
+            post("eventbus-error", {
+              deliveryId: message.deliveryId,
+              message: `Notification subscription '${message.subscriptionId}' is not active.`
+            });
+            return;
+          }
+
+          try {
+            if (message.event?.capabilityName !== entry.subscription.capabilityName) {
+              throw new Error("The publication does not match its subscription.");
+            }
+
+            const quantumEvent = Object.freeze({
+              ...message.event,
+              publisher: Object.freeze({ ...message.event.publisher })
+            });
+            const disposition = await entry.handler(quantumEvent);
+            post("eventbus-result", {
+              deliveryId: message.deliveryId,
+              disposition: disposition === "stop" ? "stop" : "continue"
+            });
+          } catch (error) {
+            post("eventbus-error", {
+              deliveryId: message.deliveryId,
+              message: errorMessage(error)
+            });
+          }
+          return;
+        }
+
+        try {
+          if (message.type === "initialize") {
+            lifecycleController = new AbortController();
+            context = createContext(message.metadata);
+            const blob = new Blob([message.source], { type: "text/javascript" });
+            const moduleUrl = URL.createObjectURL(blob);
+            try {
+              const module = await import(moduleUrl);
+              definition = module.default;
+            } finally {
+              URL.revokeObjectURL(moduleUrl);
+            }
+
+            if (!definition || typeof definition !== "object") {
+              throw new Error("The entry module must default-export a Quantum plugin definition.");
+            }
+            if (typeof definition.activate === "function") {
+              activationCleanup = await definition.activate(context);
+            }
+            post("activated");
+            return;
+          }
+
+          if (message.type === "mount") {
+            await unmount();
+            mountController = new AbortController();
+            const locale = Object.freeze(message.locale ?? {
+              cultureName: "en-US",
+              languageName: "en",
+              textDirection: "ltr"
+            });
+            document.documentElement.lang = locale.cultureName;
+            document.documentElement.dir = locale.textDirection;
+            if (typeof definition?.mount !== "function") {
+              throw new Error("The plugin does not export mount().");
+            }
+            mountCleanup = await definition.mount(Object.freeze({
+              ...context,
+              element: root,
+              route: Object.freeze(message.route),
+              locale,
+              signal: mountController.signal
+            }));
+            post("mounted");
+            return;
+          }
+
+          if (message.type === "unmount") {
+            await unmount();
+            post("unmounted");
+            return;
+          }
+
+          if (message.type === "deactivate") {
+            await unmount();
+            lifecycleController?.abort();
+            await runCleanup(activationCleanup);
+            activationCleanup = null;
+            if (typeof definition?.deactivate === "function") {
+              await definition.deactivate(context);
+            }
+            await disposeEventSubscriptions();
+            for (const [requestId, pending] of pendingRpc) {
+              post("rpc-cancel", { requestId });
+              pending.reject(new Error("Plugin runtime was deactivated."));
+            }
+            pendingRpc.clear();
+            post("deactivated");
+          }
+        } catch (error) {
+          post("error", { phase: message.type, message: errorMessage(error) });
+        }
+      });
+
+      post("ready");
+    })();
+  </script>
+</body>
+</html>

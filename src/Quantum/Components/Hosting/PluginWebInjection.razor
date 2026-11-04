@@ -1,0 +1,116 @@
+@namespace Quantum.Components
+@using Microsoft.Extensions.Logging
+@using Quantum.Plugins
+@using Quantum.WebPlugins
+@inject PluginCatalog PluginCatalog
+@inject IJSRuntime JavaScript
+@inject ILogger<PluginWebInjection> Logger
+@inject IStringLocalizer<AppStrings> L
+@inject NavigationManager Navigation
+@inject WebPluginInteropBridge InteropBridge
+@implements IAsyncDisposable
+
+@if (!string.IsNullOrWhiteSpace(_failureMessage))
+{
+    <div class="web-contribution-warning" role="status">
+        @L["CouldNotUpdatePluginWebContributionsArg", _failureMessage]
+    </div>
+}
+
+@code {
+    private long _appliedRevision = -1;
+    private string? _failureMessage;
+    private DotNetObjectReference<WebPluginInteropBridge>? _bridgeReference;
+
+    protected override void OnInitialized()
+    {
+        PluginCatalog.Changed += OnCatalogChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var revision = PluginCatalog.Revision;
+        if (_appliedRevision == revision)
+        {
+            return;
+        }
+
+        var contributions = PluginCatalog.Plugins.Select(plugin => new
+        {
+            PluginId = (string)plugin.Manifest.Id,
+            plugin.Manifest.Web.Head,
+            plugin.Manifest.Web.PostBlazor
+        }).ToArray();
+        var webPlugins = PluginCatalog.Plugins
+            .Where(static plugin => plugin.Manifest.Runtime.Kind == PluginRuntimeKind.Web)
+            .Select(plugin => new
+            {
+                PluginId = (string)plugin.Manifest.Id,
+                RuntimeId = plugin.RuntimeId.ToString("N"),
+                Version = plugin.Manifest.Version.ToString(),
+                EntryUrl = Navigation.ToAbsoluteUri(
+                    $"_content/{plugin.Manifest.Id}/{EncodePath(plugin.Manifest.Runtime.Entry)}"
+                    + $"?runtime={plugin.RuntimeId:N}").ToString(),
+                AssetBaseUrl = Navigation.ToAbsoluteUri($"_content/{plugin.Manifest.Id}/").ToString()
+            })
+            .ToArray();
+        var previousFailureMessage = _failureMessage;
+
+        try
+        {
+            _bridgeReference ??= DotNetObjectReference.Create(InteropBridge);
+            // The cast is required: anonymous-type arrays are covariant with object[], which
+            // otherwise makes JS interop treat every contribution as a separate argument.
+            await JavaScript.InvokeVoidAsync(
+                "quantum.plugins.replaceContributions",
+                (object)contributions);
+            await JavaScript.InvokeVoidAsync(
+                "quantum.plugins.reconcileWebPlugins",
+                (object)webPlugins,
+                _bridgeReference);
+            Logger.LogInformation(
+                "Reconciled {WebPluginCount} Web plugin runtime(s): {PluginIds}.",
+                webPlugins.Length,
+                webPlugins.Select(static plugin => plugin.PluginId).ToArray());
+            _failureMessage = null;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            _failureMessage = exception.Message;
+            Logger.LogError(
+                exception,
+                "Could not apply plugin Web contributions for catalog revision {Revision}.",
+                revision);
+        }
+
+        _appliedRevision = revision;
+        if (!string.Equals(previousFailureMessage, _failureMessage, StringComparison.Ordinal))
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        PluginCatalog.Changed -= OnCatalogChanged;
+        try
+        {
+            await JavaScript.InvokeVoidAsync("quantum.plugins.shutdownWebPlugins");
+        }
+        catch (Exception exception) when (exception is JSException or TaskCanceledException)
+        {
+        }
+
+        _bridgeReference?.Dispose();
+        _bridgeReference = null;
+    }
+
+    private void OnCatalogChanged(object? sender, EventArgs eventArgs)
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private static string EncodePath(string path)
+        => string.Join('/', path.Split('/').Select(Uri.EscapeDataString));
+
+}

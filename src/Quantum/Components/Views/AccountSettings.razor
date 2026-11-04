@@ -1,0 +1,91 @@
+@namespace Quantum.Components
+@implements IDisposable
+@inject IQuantumMarketplaceClient MarketplaceClient
+@inject QuantumMarketplaceSession MarketplaceSession
+@inject IStringLocalizer<AppStrings> L
+
+<section id="account" class="section-block developer-page">
+    <div class="section-heading">
+        <div><p class="eyebrow">QUANTUM ACCOUNT</p><h2>@L["AccountSettings"]</h2></div>
+    </div>
+    @if (_initializing)
+    {
+        <p role="status">@L["SigningYouIn"]</p>
+    }
+    else if (MarketplaceSession.IsAuthenticated)
+    {
+        <div class="session-bar">
+            <div><strong>@MarketplaceSession.User?.Username</strong><span>@MarketplaceSession.User?.Email</span></div>
+            <button type="button" class="secondary-button" disabled="@_busy" @onclick="LogoutAsync">@L["SignOut"]</button>
+        </div>
+    }
+    else
+    {
+        <form class="auth-card" @onsubmit="LoginAsync" @onsubmit:preventDefault>
+            <h3>@L["SignInToQuantum"]</h3>
+            <p>@L["QuantumAccountHint"]</p>
+            <label><span>@L["Email"]</span><input type="email" maxlength="320" autocomplete="email" required @bind="_email" /></label>
+            <label><span>@L["Password"]</span><input type="password" maxlength="1024" autocomplete="current-password" required @bind="_password" /></label>
+            <button type="submit" class="primary-button" disabled="@_busy">@(_busy ? L["SigningIn"] : L["SignIn"])</button>
+            <p class="web-note">@L["NeedAnAccountRegisterInTheWebPublishing"]</p>
+        </form>
+    }
+    @if (_error is not null)
+    {
+        <p class="portal-message error" role="alert">@_error</p>
+    }
+</section>
+
+@code {
+    private readonly CancellationTokenSource _lifetime = new();
+    private string _email = "";
+    private string _password = "";
+    private string? _error;
+    private bool _initializing = true;
+    private bool _busy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        MarketplaceSession.Changed += SessionChanged;
+        try { await MarketplaceSession.InitializeAsync(MarketplaceClient, _lifetime.Token); }
+        catch (Exception exception) when (exception is not OperationCanceledException) { _error = exception.Message; }
+        finally { _initializing = false; }
+    }
+
+    private void SessionChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private async Task LoginAsync()
+    {
+        if (_busy || string.IsNullOrWhiteSpace(_email) || string.IsNullOrEmpty(_password))
+        {
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+        try { await MarketplaceSession.LoginAsync(MarketplaceClient, _email.Trim(), _password, _lifetime.Token); }
+        catch (Exception exception) when (exception is not OperationCanceledException) { _error = exception.Message; }
+        finally { _password = ""; _busy = false; }
+    }
+
+    private async Task LogoutAsync()
+    {
+        if (_busy)
+        {
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+        try { await MarketplaceSession.LogoutAsync(); }
+        catch (Exception exception) when (exception is not OperationCanceledException) { _error = exception.Message; }
+        finally { _busy = false; }
+    }
+
+    public void Dispose()
+    {
+        MarketplaceSession.Changed -= SessionChanged;
+        _lifetime.Cancel();
+        _lifetime.Dispose();
+    }
+}

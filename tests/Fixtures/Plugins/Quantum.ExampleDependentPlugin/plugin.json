@@ -1,0 +1,26 @@
+{
+  "id": "quantum.plugin.example-dependent",
+  "version": "0.1.0",
+  "entryAssembly": "Quantum.ExampleDependentPlugin.dll",
+  "capabilities": { "requires": ["example.greet"] },
+  "integrations": [],
+  "ui": {
+    "routes": [
+      {
+        "path": "/plugins/example-dependent",
+        "component": "Quantum.ExampleDependentPlugin.Pages.Index",
+        "title": "依赖示例",
+        "titles": { "en-US": "Dependency example" },
+        "icon": "⇢",
+        "order": 101,
+        "showInNavigation": true
+      }
+    ]
+  },
+  "web": {
+    "head": [
+      "<link rel=\"stylesheet\" href=\"_content/quantum.plugin.example-dependent/site.css\">"
+    ],
+    "postBlazor": []
+  }
+}

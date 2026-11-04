@@ -1,0 +1,73 @@
+name: 📚 文档改进
+description: 提出文档相关的改进建议或报告问题
+title: "[Docs]: "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您为改进文档做出贡献！
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: 文档问题类型
+      description: 这是什么类型的文档问题？
+      options:
+        - 文档错误
+        - 内容缺失
+        - 内容过时
+        - 表述不清
+        - 翻译问题
+        - 其他
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: 文档位置
+      description: 请提供相关文档的位置或链接
+      placeholder: "例如：README.md"
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-content
+    attributes:
+      label: 当前内容
+      description: 请描述当前文档的问题或不足之处
+      placeholder: "请详细描述文档中需要改进的地方..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested-changes
+    attributes:
+      label: 建议修改
+      description: 您对文档有什么改进建议？
+      placeholder: |
+        请描述您的具体建议，例如：
+        - 应该添加什么内容
+        - 如何改进现有内容
+        - 是否需要添加示例或图片
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 补充说明
+      description: 添加任何其他上下文或截图
+      placeholder: "可以添加截图或其他补充信息"
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 确认事项
+      description: 提交前请确认以下内容
+      options:
+        - label: 我已确认这个文档问题尚未被其他 issue 报告
+          required: true
+        - label: 我已检查过最新的文档，确认这个问题仍然存在
+          required: true

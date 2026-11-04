@@ -1,0 +1,390 @@
+@namespace Quantum.Components.Pages
+@page "/settings"
+@implements IDisposable
+@inject PluginCatalog PluginCatalog
+@inject IPluginRuntimeManager PluginRuntimeManager
+@inject CultureService CultureService
+@inject IStringLocalizer<AppStrings> L
+
+<PageTitle>@L["Settings"] · Quantum</PageTitle>
+
+<header class="settings-header">
+    <p class="eyebrow">@L["SettingsEyebrow"]</p>
+    <h1>@L["Settings"]</h1>
+    <p>@L["ManageYourPlugins"]</p>
+</header>
+
+<AccountSettings />
+
+<AppUpdatePanel />
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">@L["LanguageEyebrow"]</p>
+            <h2>@L["LanguageAndRegion"]</h2>
+        </div>
+        <label class="language-picker">
+            <span>@L["DisplayLanguage"]</span>
+            <select value="@CultureService.CurrentCulture.Name" @onchange="ChangeCulture">
+                <option value="zh-CN">简体中文</option>
+                <option value="en-US">English</option>
+            </select>
+        </label>
+    </div>
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">@L["RuntimeEyebrow"]</p>
+            <h2>@L["PluginRuntimeStatus"]</h2>
+        </div>
+        <button class="secondary-button"
+                disabled="@IsBusy"
+                @onclick="RefreshAsync">
+            @L["RefreshPlugins"]
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_operationMessage))
+    {
+        <div class="operation-message @(_operationSucceeded ? "success" : "error")">
+            @_operationMessage
+        </div>
+    }
+
+    @if (PluginCatalog.Plugins.Count == 0)
+    {
+        <div class="empty-card">
+            <span class="empty-symbol">＋</span>
+            <div>
+                <strong>@L["NoInstalledPluginsFound"]</strong>
+                <p>@L["InstallAPluginZIPToGetStarted"]</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="plugin-list">
+            @foreach (var plugin in PluginCatalog.Plugins)
+            {
+                <article class="plugin-row">
+                    <span class="plugin-avatar">@(((string)plugin.Manifest.Id)[0].ToString().ToUpperInvariant())</span>
+                    <div class="plugin-meta">
+                        <strong>@plugin.Manifest.Id</strong>
+                        <span>@GetPluginVersionText(plugin)</span>
+                    </div>
+                    <span class="healthy-pill">@L["Running"]</span>
+                    <div class="plugin-actions">
+                        <button disabled="@IsBusy"
+                                @onclick="() => ReloadAsync((string)plugin.Manifest.Id)">
+                            @L["Reload"]
+                        </button>
+                        <button disabled="@IsBusy"
+                                @onclick="() => PrepareDisable((string)plugin.Manifest.Id)">
+                            @L["Disable"]
+                        </button>
+                        <button class="danger"
+                                disabled="@IsBusy"
+                                @onclick="() => PrepareUninstall((string)plugin.Manifest.Id)">
+                            @L["Uninstall"]
+                        </button>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+<section class="section-block">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">@L["DisabledEyebrow"]</p>
+            <h2>@L["DisabledPlugins"]</h2>
+        </div>
+    </div>
+
+    @if (_disabledPlugins.Count == 0)
+    {
+        <div class="empty-card compact">
+            <span class="empty-symbol">—</span>
+            <div>
+                <strong>@L["NoDisabledPlugins"]</strong>
+                <p>@L["DisabledPluginsCanBeEnabledAgainHereAt"]</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="plugin-list">
+            @foreach (var plugin in _disabledPlugins)
+            {
+                <article class="plugin-row">
+                    <span class="plugin-avatar">@plugin.PluginId[0].ToString().ToUpperInvariant()</span>
+                    <div class="plugin-meta">
+                        <strong>@plugin.PluginId</strong>
+                        <span>v@plugin.Version</span>
+                    </div>
+                    <span class="disabled-pill">@L["Disabled"]</span>
+                    <div class="plugin-actions">
+                        <button disabled="@IsBusy"
+                                @onclick="() => EnableAsync(plugin.PluginId)">
+                            @L["EnableAgain"]
+                        </button>
+                        <button class="danger"
+                                disabled="@IsBusy"
+                                @onclick="() => PrepareUninstall(plugin.PluginId)">
+                            @L["Uninstall"]
+                        </button>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+@if (_pendingDisableImpact is { } disableImpact)
+{
+    <div class="dialog-backdrop">
+        <section class="unload-dialog disable-plugin-dialog"
+                 role="alertdialog"
+                 aria-modal="true"
+                 aria-labelledby="disable-dialog-title">
+            <p class="eyebrow">@L["DISABLEPLUGIN"]</p>
+            <h2 id="disable-dialog-title">@L["DisableArg", disableImpact.PluginId]</h2>
+            @if (disableImpact.DependentPluginIds.Count == 0)
+            {
+                <p>@L["NoOtherPluginsWillBeAffected"]</p>
+            }
+            else
+            {
+                <p>@L["ThesePluginsWillAlsoBeDisabled"]</p>
+                <ul>
+                    @foreach (var dependentPluginId in disableImpact.DependentPluginIds)
+                    {
+                        <li>@dependentPluginId</li>
+                    }
+                </ul>
+            }
+            <p class="dialog-note">@L["YouCanEnableThisPluginAgainLater"]</p>
+            <div class="dialog-actions">
+                <button type="button" class="secondary-button" @onclick="CancelDisable">
+                    @L["Cancel"]
+                </button>
+                <button type="button" class="primary-button" @onclick="ConfirmDisableAsync">
+                    @L["ConfirmDisable"]
+                </button>
+            </div>
+        </section>
+    </div>
+}
+
+@if (_pendingUninstallImpact is { } uninstallImpact)
+{
+    <div class="dialog-backdrop">
+        <section class="unload-dialog"
+                 role="alertdialog"
+                 aria-modal="true"
+                 aria-labelledby="uninstall-dialog-title">
+            <p class="eyebrow">@L["UNINSTALLPLUGIN"]</p>
+            <h2 id="uninstall-dialog-title">@L["PermanentlyUninstallArg", uninstallImpact.PluginId]</h2>
+            @if (uninstallImpact.DependentPluginIds.Count == 0)
+            {
+                <p>@L["NoOtherPluginsWillBeAffected"]</p>
+            }
+            else
+            {
+                <p>@L["ThesePluginsWillAlsoBeUninstalled"]</p>
+                <ul>
+                    @foreach (var dependentPluginId in uninstallImpact.DependentPluginIds)
+                    {
+                        <li>@dependentPluginId</li>
+                    }
+                </ul>
+            }
+            <p class="dialog-note danger-note">@L["ThisPermanentlyRemovesThePluginAndItsFiles"]</p>
+            <div class="dialog-actions">
+                <button type="button" class="secondary-button" @onclick="CancelUninstall">
+                    @L["Cancel"]
+                </button>
+                <button type="button" class="danger-button" @onclick="ConfirmUninstallAsync">
+                    @L["UninstallPermanently"]
+                </button>
+            </div>
+        </section>
+    </div>
+}
+
+@if (PluginCatalog.Failures.Count > 0)
+{
+    <section class="section-block failures">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">@L["ATTENTION"]</p>
+                <h2>@L["PluginsNotLoaded"]</h2>
+            </div>
+        </div>
+        @foreach (var failure in PluginCatalog.Failures)
+        {
+            <div class="failure-row">
+                <strong>@(failure.PluginId?.ToString() ?? L["UnknownPlugin"].Value)</strong>
+                <span>@failure.Reason</span>
+            </div>
+        }
+    </section>
+}
+
+@code {
+    private string? _busyPluginId;
+    private string? _operationMessage;
+    private bool _operationSucceeded;
+    private IReadOnlyList<DisabledPluginInfo> _disabledPlugins = [];
+    private PluginOperationImpact? _pendingDisableImpact;
+    private PluginOperationImpact? _pendingUninstallImpact;
+
+    private bool IsBusy => _busyPluginId is not null
+        || _pendingDisableImpact is not null
+        || _pendingUninstallImpact is not null;
+
+    private string GetPluginVersionText(LoadedPlugin plugin)
+        => plugin.Routes.Count == 1
+            ? L["PluginPageCountSingular", plugin.Manifest.Version, plugin.Routes.Count]
+            : L["PluginPageCountPlural", plugin.Manifest.Version, plugin.Routes.Count];
+
+    private void ChangeCulture(ChangeEventArgs eventArgs)
+        => CultureService.SetCulture(eventArgs.Value?.ToString());
+
+    protected override void OnInitialized()
+    {
+        PluginCatalog.Changed += OnCatalogChanged;
+        RefreshDisabledPlugins();
+    }
+
+    public void Dispose()
+    {
+        PluginCatalog.Changed -= OnCatalogChanged;
+    }
+
+    private Task ReloadAsync(string pluginId)
+        => RunOperationAsync(pluginId, () => PluginRuntimeManager.ReloadAsync(pluginId));
+
+    private Task EnableAsync(string pluginId)
+        => RunOperationAsync(pluginId, () => PluginRuntimeManager.EnableAsync(pluginId));
+
+    private void PrepareDisable(string pluginId)
+    {
+        if (IsBusy)
+        {
+            return;
+        }
+
+        try
+        {
+            _pendingDisableImpact = PluginRuntimeManager.GetDisableImpact(pluginId);
+            _operationMessage = null;
+        }
+        catch (Exception exception)
+        {
+            _operationSucceeded = false;
+            _operationMessage = L["CouldNotPrepareDisableArg", exception.Message];
+        }
+    }
+
+    private void CancelDisable()
+        => _pendingDisableImpact = null;
+
+    private async Task ConfirmDisableAsync()
+    {
+        var impact = _pendingDisableImpact;
+        if (impact is null || _busyPluginId is not null)
+        {
+            return;
+        }
+
+        _pendingDisableImpact = null;
+        await RunOperationAsync(
+            impact.PluginId,
+            () => PluginRuntimeManager.DisableAsync(impact.PluginId, impact.CatalogRevision));
+    }
+
+    private void PrepareUninstall(string pluginId)
+    {
+        if (IsBusy)
+        {
+            return;
+        }
+
+        try
+        {
+            _pendingUninstallImpact = PluginRuntimeManager.GetUninstallImpact(pluginId);
+            _operationMessage = null;
+        }
+        catch (Exception exception)
+        {
+            _operationSucceeded = false;
+            _operationMessage = L["CouldNotPrepareUninstallArg", exception.Message];
+        }
+    }
+
+    private void CancelUninstall()
+        => _pendingUninstallImpact = null;
+
+    private async Task ConfirmUninstallAsync()
+    {
+        var impact = _pendingUninstallImpact;
+        if (impact is null || _busyPluginId is not null)
+        {
+            return;
+        }
+
+        _pendingUninstallImpact = null;
+        await RunOperationAsync(
+            impact.PluginId,
+            () => PluginRuntimeManager.UninstallAsync(impact.PluginId, impact.CatalogRevision));
+    }
+
+    private Task RefreshAsync()
+        => RunOperationAsync("*", () => PluginRuntimeManager.RefreshAsync());
+
+    private async Task RunOperationAsync(
+        string operationId,
+        Func<Task<PluginOperationResult>> operation)
+    {
+        if (IsBusy)
+        {
+            return;
+        }
+
+        _busyPluginId = operationId;
+        _operationMessage = null;
+        try
+        {
+            var result = await operation();
+            _operationSucceeded = result.Succeeded;
+            _operationMessage = result.Message;
+        }
+        catch (Exception exception)
+        {
+            _operationSucceeded = false;
+            _operationMessage = L["PluginOperationFailedArg", exception.Message];
+        }
+        finally
+        {
+            _busyPluginId = null;
+            RefreshDisabledPlugins();
+        }
+    }
+
+    private void RefreshDisabledPlugins()
+        => _disabledPlugins = PluginRuntimeManager.GetDisabledPlugins();
+
+    private void OnCatalogChanged(object? sender, EventArgs eventArgs)
+    {
+        _ = InvokeAsync(() =>
+        {
+            RefreshDisabledPlugins();
+            StateHasChanged();
+        });
+    }
+}

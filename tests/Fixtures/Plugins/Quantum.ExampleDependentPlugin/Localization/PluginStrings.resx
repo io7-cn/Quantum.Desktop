@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="CompanionPlugin" xml:space="preserve"><value>Companion plugin</value></data>
+  <data name="CompanionEyebrow" xml:space="preserve"><value>COMPANION</value></data>
+  <data name="CompanionLead" xml:space="preserve"><value>This plugin calls a greeting capability supplied by an available plugin.</value></data>
+  <data name="PluginStatus" xml:space="preserve"><value>Plugin status</value></data>
+  <data name="RequiredCapability" xml:space="preserve"><value>Required capability</value></data>
+  <data name="Waiting" xml:space="preserve"><value>Waiting</value></data>
+  <data name="StartedAtArg" xml:space="preserve"><value>Started at {0}</value></data>
+  <data name="LatestGreeting" xml:space="preserve"><value>Latest greeting</value></data>
+  <data name="WaitingForGreeting" xml:space="preserve"><value>Waiting for a greeting</value></data>
+</root>

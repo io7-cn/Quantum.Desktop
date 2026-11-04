@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <Description>Internal Quantum Platform client used by Quantum Desktop.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Quantum.Desktop.MobileProtocol/Quantum.Desktop.MobileProtocol.csproj" />
+    <PackageReference Include="NOF.Contract" />
+  </ItemGroup>
+</Project>

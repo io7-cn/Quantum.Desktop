@@ -1,0 +1,17 @@
+<Solution>
+  <Project Path="src/Quantum.Desktop.MobileProtocol/Quantum.Desktop.MobileProtocol.csproj" />
+  <Project Path="src/Quantum.Desktop.PlatformClient/Quantum.Desktop.PlatformClient.csproj" />
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Packages.props" />
+    <File Path="NuGet.config" />
+  </Folder>
+  <Project Path="src/Quantum/Quantum.csproj" />
+  <Project Path="src/Quantum.UpdateAgent/Quantum.UpdateAgent.csproj" />
+  <Project Path="tests/Quantum.Tests/Quantum.Tests.csproj" />
+  <Project Path="tests/Fixtures/OptionalFrameworkPackage/OptionalFrameworkPackage.csproj" />
+  <Project Path="tests/Fixtures/Plugins/Quantum.ExampleDependentPlugin/Quantum.ExampleDependentPlugin.csproj" />
+  <Project Path="tests/Fixtures/Plugins/Quantum.ExamplePlugin/Quantum.ExamplePlugin.csproj" />
+</Solution>

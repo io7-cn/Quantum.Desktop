@@ -1,0 +1,190 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
+using NOF.Hosting;
+using NOF.Hosting.Maui;
+using Quantum.Logging;
+using Quantum.Localization;
+using Quantum.Marketplace;
+using Quantum.Mobile.Internal;
+using Quantum.Plugins;
+using Quantum.WebPlugins;
+
+namespace Quantum;
+
+public static class MauiProgram
+{
+    public static MauiApp CreateMauiApp()
+    {
+        var loggingOptions = QuantumLoggingOptions.Parse(
+            Environment.GetCommandLineArgs(),
+            FileSystem.AppDataDirectory);
+        var consoleOutputRequested = loggingOptions.WriteToConsole;
+#if WINDOWS
+        if (consoleOutputRequested && !WindowsConsole.TryEnable())
+        {
+            loggingOptions = loggingOptions with { WriteToConsole = false };
+        }
+#endif
+        var builder = NOFMauiAppBuilder.Create();
+        QuantumLogging.Configure(builder.Logging, loggingOptions);
+        var (runtimeOptions, locationFailures) = ResolvePluginRuntimeOptions();
+
+        builder.AddApplicationPart(typeof(MauiProgram).Assembly);
+
+        builder.MauiAppBuilder
+            .UseMauiApp<App>();
+
+        builder.Services.AddMauiBlazorWebView();
+#if MACCATALYST
+        builder.Services.AddSingleton<Quantum.Updates.IAppUpdateBackend, Quantum.Updates.MacAppUpdateBackend>();
+#else
+        builder.Services.AddSingleton<Quantum.Updates.IAppUpdateBackend, Quantum.Updates.VelopackUpdateBackend>();
+#endif
+        builder.Services.AddSingleton<Quantum.Updates.AppUpdateService>();
+        builder.Services.AddLocalization();
+        var requestedCulture = Preferences.Default.Get(
+            CultureService.PreferenceKey,
+            System.Globalization.CultureInfo.CurrentUICulture.Name);
+        builder.Services.AddSingleton(new CultureService(
+            requestedCulture,
+            cultureName => Preferences.Default.Set(CultureService.PreferenceKey, cultureName)));
+        builder.Services.AddSingleton(
+            typeof(IStringLocalizer<>),
+            typeof(CultureAwareStringLocalizer<>));
+#if DEBUG
+        builder.Services.AddBlazorWebViewDeveloperTools();
+#endif
+        builder.Services.AddSingleton<PluginCatalog>(services => new PluginCatalog(
+            [],
+            locationFailures,
+            services.GetRequiredService<ILogger<PluginCatalog>>()));
+        builder.Services.AddSingleton<IQuantumPluginEnvironment>(services =>
+            services.GetRequiredService<PluginCatalog>());
+        builder.Services.AddSingleton<PluginRpcRouter>();
+        builder.Services.AddQuantumPluginEventBus();
+        builder.Services.AddSingleton(runtimeOptions);
+        builder.Services.AddSingleton<IPluginReferenceRelease, BlazorPluginReferenceRelease>();
+        builder.Services.AddSingleton<PluginRuntimeManager>(services => new PluginRuntimeManager(
+            services.GetRequiredService<PluginCatalog>(),
+            runtimeOptions,
+            services.GetRequiredService<IPluginReferenceRelease>(),
+            logger: services.GetRequiredService<ILogger<PluginRuntimeManager>>()));
+        builder.Services.AddSingleton<IPluginRuntimeManager>(services =>
+            services.GetRequiredService<PluginRuntimeManager>());
+        var marketplaceOptions = QuantumMarketplaceOptions.FromEnvironment();
+        builder.Services.AddSingleton(marketplaceOptions);
+        builder.Services.AddSingleton(new HttpClient
+        {
+            Timeout = TimeSpan.FromMinutes(5)
+        });
+        var sessionStorageKey = "quantum.marketplace.session." + Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(marketplaceOptions.BaseAddress.AbsoluteUri)));
+        builder.Services.AddSingleton(new QuantumMarketplaceSession(
+            async () => await SecureStorage.Default.GetAsync(sessionStorageKey) ??
+                (marketplaceOptions.BaseAddress.AbsoluteUri == PlatformAddress.DefaultUrl
+                    ? await SecureStorage.Default.GetAsync("quantum.marketplace.access-token") : null),
+            async token =>
+            {
+                await SecureStorage.Default.SetAsync(sessionStorageKey, token);
+                SecureStorage.Default.Remove("quantum.marketplace.access-token");
+            },
+            () =>
+            {
+                SecureStorage.Default.Remove(sessionStorageKey);
+                SecureStorage.Default.Remove("quantum.marketplace.access-token");
+                return Task.CompletedTask;
+            }));
+        builder.Services.AddSingleton<IQuantumMarketplaceClient, QuantumMarketplaceClient>();
+        builder.Services.AddSingleton<MarketplacePluginInstaller>();
+        builder.Services.AddSingleton<PluginInstallationRpc>();
+        builder.Services.AddSingleton<ConfirmPluginInstallation>(_ => (callerId, source) =>
+            MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                var page = Application.Current?.Windows.FirstOrDefault()?.Page;
+                return page is not null && await page.DisplayAlertAsync(
+                    AppText.Get("PluginRpcInstallTitle"),
+                    AppText.Get("PluginRpcInstallPrompt", callerId, source),
+                    AppText.Get("ConfirmInstall"), AppText.Get("Cancel"));
+            }));
+        builder.Services.AddSingleton<Quantum.Mobile.MobileActionGateway>();
+        string DesktopRegistrationKey(string user) => "quantum.mobile.desktop." + Convert.ToHexStringLower(
+            System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(marketplaceOptions.BaseAddress.AbsoluteUri + "\n" + user)));
+        builder.Services.AddSingleton(services => new Quantum.Mobile.MobileDesktopBridge(
+            services.GetRequiredService<HttpClient>(),
+            services.GetRequiredService<QuantumMarketplaceSession>(), marketplaceOptions,
+            services.GetRequiredService<Quantum.Mobile.MobileActionGateway>(),
+            Path.Combine(FileSystem.AppDataDirectory, "MobileBridgeJournal"),
+            user => SecureStorage.Default.GetAsync(DesktopRegistrationKey(user)),
+            (user, value) => SecureStorage.Default.SetAsync(DesktopRegistrationKey(user), value),
+            user => SecureStorage.Default.Remove(DesktopRegistrationKey(user))));
+        builder.Services.AddSingleton<PluginStaticAssetFileProvider>();
+        builder.Services.AddScoped<WebPluginInteropBridge>();
+        builder.Services.AddSingleton<MainPage>();
+        builder.Services.AddSingleton<IComponentActivator, PluginComponentActivator>();
+        builder.Services.AddInitializationStep(new PluginLifecycleInitializationStep());
+
+        var nofApp = builder.BuildAsync().GetAwaiter().GetResult();
+        nofApp.Services
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("Quantum.Startup")
+            .LogInformation(
+                "Logging initialized. Process log file starts at {LogFilePath}; "
+                + "console requested: {ConsoleOutputRequested}; console enabled: {ConsoleOutputEnabled}.",
+                loggingOptions.GetFilePath(segmentIndex: 0),
+                consoleOutputRequested,
+                loggingOptions.WriteToConsole);
+        return nofApp.MauiApp;
+    }
+
+    private static (PluginRuntimeOptions Options, IReadOnlyList<PluginLoadFailure> Failures)
+        ResolvePluginRuntimeOptions()
+    {
+        var configuredPath = Environment.GetEnvironmentVariable("QUANTUM_MODULES_PATH");
+        var bundledPath = Path.Combine(AppContext.BaseDirectory, "Modules");
+        var applicationDataPath = Path.Combine(FileSystem.AppDataDirectory, "Modules");
+        var databasePath = Path.Combine(FileSystem.AppDataDirectory, "quantum.db");
+        var preferredPath = !string.IsNullOrWhiteSpace(configuredPath)
+            ? Path.GetFullPath(configuredPath)
+            : Directory.Exists(bundledPath)
+                ? bundledPath
+                : applicationDataPath;
+
+        try
+        {
+            Directory.CreateDirectory(preferredPath);
+            return (
+                new PluginRuntimeOptions(
+                    preferredPath,
+                    Path.Combine(FileSystem.CacheDirectory, "PluginShadow"),
+                    databasePath),
+                []);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            if (string.Equals(preferredPath, applicationDataPath, StringComparison.Ordinal))
+            {
+                return (
+                    new PluginRuntimeOptions(
+                        applicationDataPath,
+                        Path.Combine(FileSystem.CacheDirectory, "PluginShadow"),
+                        databasePath),
+                    [new PluginLoadFailure(
+                        null,
+                        $"Plugin directory '{preferredPath}' is not accessible.",
+                        exception)]);
+            }
+
+            Directory.CreateDirectory(applicationDataPath);
+            return (
+                    new PluginRuntimeOptions(
+                        applicationDataPath,
+                        Path.Combine(FileSystem.CacheDirectory, "PluginShadow"),
+                        databasePath),
+                [new PluginLoadFailure(
+                    null,
+                    $"Plugin directory '{preferredPath}' is not accessible; using application data instead.",
+                    exception)]);
+        }
+    }
+
+}

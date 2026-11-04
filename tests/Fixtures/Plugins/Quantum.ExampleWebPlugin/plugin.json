@@ -1,0 +1,37 @@
+{
+  "id": "quantum.plugin.example-web",
+  "version": "0.1.0",
+  "runtime": {
+    "kind": "web",
+    "entry": "dist/plugin.js"
+  },
+  "dependencies": [],
+  "integrations": [],
+  "capabilities": {
+    "provides": ["example.web.status"],
+    "integrates": ["example.handshake", "example.suggestions"],
+    "notifications": {
+      "example.web.status": {
+        "description": "Reports the Web example's activation state.",
+        "messageSchema": {
+          "type": "object",
+          "properties": { "state": { "type": "string" } },
+          "required": ["state"]
+        }
+      }
+    }
+  },
+  "ui": {
+    "routes": [
+      {
+        "path": "/plugins/example-web",
+        "view": "main",
+        "title": "TypeScript 示例",
+        "titles": { "en-US": "TypeScript example" },
+        "icon": "TS",
+        "order": 110,
+        "showInNavigation": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,119 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+@using Microsoft.Extensions.Logging
+@inject PluginCatalog PluginCatalog
+@inject CultureService CultureService
+@inject IStringLocalizer<AppStrings> L
+@inject IJSRuntime JavaScript
+@inject ILogger<MainLayout> Logger
+
+<CascadingValue Name="CultureName" Value="CultureService.CurrentCulture.Name">
+    <GlobalPluginInstaller>
+        <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" href="/" aria-label="@L["QuantumHome"]" title="Quantum">
+                <span class="brand-mark" aria-hidden="true"><img src="assets/quantum-mark.svg" alt="" /></span>
+            </a>
+
+            <nav aria-label="@L["PluginNavigation"]">
+                @if (PluginCatalog.NavigationRoutes.Count > 0)
+                {
+                    @foreach (var route in PluginCatalog.NavigationRoutes)
+                    {
+                        var title = route.Definition.GetTitle(CultureService.CurrentCulture)
+                            ?? route.PluginId.ToString();
+                        <NavLink href="@route.Definition.Path"
+                                 class="nav-item"
+                                 aria-label="@title"
+                                 title="@title">
+                            <PluginIcon Image="@route.Definition.IconImage" Glyph="@route.Definition.Icon" />
+                        </NavLink>
+                    }
+                }
+            </nav>
+
+            <NavLink href="/marketplace"
+                     class="nav-item marketplace-nav-item"
+                     aria-label="@L["PluginMarketplace"]"
+                     title="@L["PluginMarketplace"]">
+                <span class="nav-icon" aria-hidden="true">▦</span>
+            </NavLink>
+
+            <NavLink href="/settings"
+                     class="nav-item settings-nav-item"
+                     aria-label="@L["Settings"]"
+                     title="@L["Settings"]">
+                <span class="nav-icon settings-gear" aria-hidden="true">⚙</span>
+            </NavLink>
+        </aside>
+
+        <main class="content">
+            <AppUpdateNotification />
+            @Body
+        </main>
+        </div>
+
+        @foreach (var contribution in PluginCatalog.GlobalComponents)
+        {
+            <DynamicComponent @key="GlobalComponentKey(contribution)" Type="contribution.ComponentType" />
+        }
+    </GlobalPluginInstaller>
+</CascadingValue>
+
+@code {
+    [Inject] private Quantum.Mobile.MobileDesktopBridge MobileAccess { get; set; } = null!;
+    [Inject] private Quantum.Marketplace.IQuantumMarketplaceClient Marketplace { get; set; } = null!;
+    private string GlobalComponentKey(PluginGlobalComponentRegistration contribution)
+    {
+        var plugin = PluginCatalog.FindPlugin((string)contribution.PluginId);
+        return $"{plugin?.RuntimeId:N}:{contribution.Definition.Component}";
+    }
+
+    protected override void OnInitialized()
+    {
+        PluginCatalog.Changed += OnCatalogChanged;
+        CultureService.Changed += OnCultureChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            MobileAccess.Initialize(Marketplace);
+            await UpdateDocumentCultureAsync();
+        }
+    }
+
+    public void Dispose()
+    {
+        PluginCatalog.Changed -= OnCatalogChanged;
+        CultureService.Changed -= OnCultureChanged;
+    }
+
+    private void OnCatalogChanged(object? sender, EventArgs eventArgs)
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void OnCultureChanged(object? sender, EventArgs eventArgs)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            StateHasChanged();
+            try
+            {
+                await UpdateDocumentCultureAsync();
+            }
+            catch (Exception exception) when (exception is JSException or TaskCanceledException or InvalidOperationException)
+            {
+                Logger.LogDebug(exception, "The document culture update was interrupted by a WebView reload.");
+            }
+        });
+    }
+
+    private ValueTask UpdateDocumentCultureAsync()
+        => JavaScript.InvokeVoidAsync(
+            "quantum.localization.setCulture",
+            CultureService.CurrentCulture.Name,
+            CultureService.TextDirection);
+}

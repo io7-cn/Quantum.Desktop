@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="ExamplePlugin" xml:space="preserve"><value>Example plugin</value></data>
+  <data name="ExampleEyebrow" xml:space="preserve"><value>EXAMPLE</value></data>
+  <data name="ExampleLead" xml:space="preserve"><value>Explore this plugin alongside the Web example.</value></data>
+  <data name="StartedAt" xml:space="preserve"><value>Started at</value></data>
+  <data name="Waiting" xml:space="preserve"><value>Waiting</value></data>
+  <data name="WebPlugin" xml:space="preserve"><value>Web plugin</value></data>
+  <data name="Available" xml:space="preserve"><value>Available</value></data>
+  <data name="NotInstalled" xml:space="preserve"><value>Not installed</value></data>
+  <data name="Connections" xml:space="preserve"><value>Connections</value></data>
+  <data name="WaitingForWebPlugin" xml:space="preserve"><value>Waiting for the Web plugin.</value></data>
+  <data name="LastConnectionArg" xml:space="preserve"><value>Last connection: {0}</value></data>
+</root>

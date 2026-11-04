@@ -1,0 +1,414 @@
+using System.Collections.ObjectModel;
+using System.Globalization;
+
+namespace Quantum.Plugins;
+
+public sealed class PluginManifest
+{
+    public PluginManifest(
+        string id,
+        string version,
+        string entryAssembly,
+        IEnumerable<PluginDependency>? dependencies = null,
+        IEnumerable<PluginIntegration>? integrations = null,
+        IEnumerable<PluginRouteDefinition>? routes = null,
+        PluginWebContributions? web = null,
+        PluginDatabaseDefinition? database = null,
+        IEnumerable<PluginGlobalComponentDefinition>? globalComponents = null,
+        PluginCapabilities? capabilities = null)
+        : this(
+            id,
+            version,
+            PluginRuntimeDefinition.DotNet(entryAssembly),
+            dependencies,
+            integrations,
+            routes,
+            web,
+            database,
+            globalComponents,
+            capabilities)
+    {
+    }
+
+    public PluginManifest(
+        string id,
+        string version,
+        PluginRuntimeDefinition runtime,
+        IEnumerable<PluginDependency>? dependencies = null,
+        IEnumerable<PluginIntegration>? integrations = null,
+        IEnumerable<PluginRouteDefinition>? routes = null,
+        PluginWebContributions? web = null,
+        PluginDatabaseDefinition? database = null,
+        IEnumerable<PluginGlobalComponentDefinition>? globalComponents = null,
+        PluginCapabilities? capabilities = null)
+    {
+        Id = PluginId.Of(id);
+        Version = SemanticVersion.Of(version);
+        Runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
+        Dependencies = (dependencies ?? []).ToArray();
+        Integrations = (integrations ?? []).ToArray();
+        Routes = (routes ?? []).ToArray();
+        GlobalComponents = (globalComponents ?? []).ToArray();
+        Web = web ?? PluginWebContributions.Empty;
+        Database = database;
+        Capabilities = capabilities ?? new PluginCapabilities();
+        if (Runtime.Kind == PluginRuntimeKind.Web
+            && Capabilities.ProvidedKinds.Values.Any(kind => kind != QuantumCapabilityKind.Notify))
+        {
+            throw new ArgumentException("Web plugins can provide notifications. RPC and Collect handlers require a .NET runtime.", nameof(capabilities));
+        }
+
+        foreach (var route in Routes)
+        {
+            if (Runtime.Kind == PluginRuntimeKind.DotNet && route.Component is null)
+            {
+                throw new ArgumentException($".NET route '{route.Path}' must declare a component.", nameof(routes));
+            }
+
+            if (Runtime.Kind == PluginRuntimeKind.Web && route.View is null)
+            {
+                throw new ArgumentException($"Web route '{route.Path}' must declare a view.", nameof(routes));
+            }
+        }
+
+        if (Runtime.Kind == PluginRuntimeKind.Web && GlobalComponents.Count > 0)
+        {
+            throw new ArgumentException(
+                "Web plugins cannot contribute host-level .NET components.",
+                nameof(globalComponents));
+        }
+
+        if (Runtime.Kind == PluginRuntimeKind.Web
+            && (Web.Head.Count > 0 || Web.PostBlazor.Count > 0))
+        {
+            throw new ArgumentException(
+                "Web plugins cannot inject HTML into the host document; render inside the isolated plugin frame instead.",
+                nameof(web));
+        }
+
+        if (Dependencies.Any(dependency => dependency.Id == Id)
+            || Integrations.Any(integration => integration.Id == Id))
+        {
+            throw new ArgumentException("A plugin cannot declare a relationship with itself.");
+        }
+
+        EnsureUnique(
+            Dependencies.Select(static dependency => dependency.Id)
+                .Concat(Integrations.Select(static integration => integration.Id)),
+            "plugin relationship");
+        EnsureUnique(Routes.Select(static route => route.Path), "route");
+        EnsureUnique(GlobalComponents.Select(static component => component.Component), "global component");
+    }
+
+    public string Id { get; }
+
+    public string Version { get; }
+
+    public PluginRuntimeDefinition Runtime { get; }
+
+    public string? EntryAssembly => Runtime.Kind == PluginRuntimeKind.DotNet ? Runtime.Entry : null;
+
+    public IReadOnlyList<PluginDependency> Dependencies { get; }
+
+    public IReadOnlyList<PluginIntegration> Integrations { get; }
+
+    public IReadOnlyList<PluginRouteDefinition> Routes { get; }
+
+    public IReadOnlyList<PluginGlobalComponentDefinition> GlobalComponents { get; }
+
+    public PluginWebContributions Web { get; }
+
+    public PluginDatabaseDefinition? Database { get; }
+
+    public PluginCapabilities Capabilities { get; }
+
+    private static void EnsureUnique<T>(IEnumerable<T> values, string name)
+        where T : notnull
+    {
+        var seen = new HashSet<T>();
+        if (values.Any(value => !seen.Add(value)))
+        {
+            throw new ArgumentException($"Plugin manifest contains a duplicate {name}.");
+        }
+    }
+}
+
+public sealed record PluginGlobalComponentDefinition
+{
+    public PluginGlobalComponentDefinition(string component, int order = 0)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(component);
+        Component = component.Trim();
+        Order = order;
+    }
+
+    public string Component { get; }
+
+    public int Order { get; }
+}
+
+public sealed record PluginDatabaseDefinition
+{
+    public PluginDatabaseDefinition(string migrations)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(migrations);
+        var normalized = migrations.StartsWith("./", StringComparison.Ordinal)
+            ? migrations[2..]
+            : migrations;
+        if (!string.Equals(migrations, migrations.Trim(), StringComparison.Ordinal)
+            || string.IsNullOrWhiteSpace(normalized)
+            || Path.IsPathRooted(normalized)
+            || normalized.Contains('\\', StringComparison.Ordinal)
+            || normalized.Contains(':', StringComparison.Ordinal)
+            || normalized.Split('/').Any(static segment => segment.Length == 0 || segment is "." or ".."))
+        {
+            throw new ArgumentException(
+                "Database migrations must be a normalized relative directory using forward slashes.",
+                nameof(migrations));
+        }
+
+        Migrations = normalized;
+    }
+
+    public string Migrations { get; }
+}
+
+public enum PluginRuntimeKind
+{
+    DotNet,
+    Web
+}
+
+public sealed record PluginRuntimeDefinition
+{
+    private PluginRuntimeDefinition(PluginRuntimeKind kind, string entry)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(entry);
+        if (!string.Equals(entry, entry.Trim(), StringComparison.Ordinal)
+            || Path.IsPathRooted(entry)
+            || entry.Contains('\\', StringComparison.Ordinal)
+            || entry.Contains(':', StringComparison.Ordinal)
+            || entry.Split('/').Any(static segment => segment.Length == 0 || segment is "." or ".."))
+        {
+            throw new ArgumentException(
+                "Runtime entry must be a normalized relative path using forward slashes.",
+                nameof(entry));
+        }
+
+        if (kind == PluginRuntimeKind.DotNet
+            && (entry.Contains('/', StringComparison.Ordinal)
+                || !entry.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new ArgumentException(".NET runtime entry must be a DLL file name without a path.", nameof(entry));
+        }
+
+        if (kind == PluginRuntimeKind.Web
+            && !entry.EndsWith(".js", StringComparison.OrdinalIgnoreCase)
+            && !entry.EndsWith(".mjs", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("Web runtime entry must be a JavaScript module.", nameof(entry));
+        }
+
+        Kind = kind;
+        Entry = entry;
+    }
+
+    public PluginRuntimeKind Kind { get; }
+
+    public string Entry { get; }
+
+    public static PluginRuntimeDefinition DotNet(string entryAssembly)
+        => new(PluginRuntimeKind.DotNet, entryAssembly);
+
+    public static PluginRuntimeDefinition Web(string entryModule)
+        => new(PluginRuntimeKind.Web, entryModule);
+}
+
+public sealed record PluginDependency(string Id, string VersionRange)
+{
+    public string Id { get; } = PluginId.Of(Id);
+
+    public string VersionRange { get; } = Quantum.Plugin.Abstraction.VersionRange.Of(VersionRange);
+}
+
+public sealed record PluginIntegration(string Id, string VersionRange)
+{
+    public string Id { get; } = PluginId.Of(Id);
+
+    public string VersionRange { get; } = Quantum.Plugin.Abstraction.VersionRange.Of(VersionRange);
+}
+
+public sealed record PluginRouteDefinition
+{
+    public PluginRouteDefinition(
+        string path,
+        string component,
+        string? title = null,
+        string? icon = null,
+        int order = 0)
+        : this(path, component, view: null, title, icon, order, showInNavigation: true)
+    {
+    }
+
+    public PluginRouteDefinition(
+        string path,
+        string component,
+        string? title,
+        string? icon,
+        int order,
+        bool showInNavigation)
+        : this(path, component, view: null, title, icon, order, showInNavigation)
+    {
+    }
+
+    private PluginRouteDefinition(
+        string path,
+        string? component,
+        string? view,
+        string? title,
+        string? icon,
+        int order,
+        bool showInNavigation,
+        IReadOnlyDictionary<string, string>? localizedTitles = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        if (!path.StartsWith('/'))
+        {
+            throw new ArgumentException("Plugin route paths must be absolute.", nameof(path));
+        }
+
+        Path = path.Length > 1 ? path.TrimEnd('/') : path;
+        Component = string.IsNullOrWhiteSpace(component) ? null : component.Trim();
+        View = string.IsNullOrWhiteSpace(view) ? null : view.Trim();
+        Title = string.IsNullOrWhiteSpace(title) ? null : title.Trim();
+        LocalizedTitles = NormalizeLocalizedTitles(localizedTitles);
+        Icon = string.IsNullOrWhiteSpace(icon) ? null : icon.Trim();
+        Order = order;
+        ShowInNavigation = showInNavigation;
+    }
+
+    public string Path { get; }
+
+    public string? Component { get; }
+
+    public string? View { get; }
+
+    public string? Title { get; }
+
+    public IReadOnlyDictionary<string, string> LocalizedTitles { get; }
+
+    public string? Icon { get; }
+
+    public string? IconFile { get; init; }
+
+    public string? IconImage { get; init; }
+
+    public int Order { get; }
+
+    public bool ShowInNavigation { get; }
+
+    public static PluginRouteDefinition Web(
+        string path,
+        string view,
+        string? title = null,
+        string? icon = null,
+        int order = 0)
+        => Web(path, view, title, icon, order, showInNavigation: true);
+
+    public static PluginRouteDefinition Web(
+        string path,
+        string view,
+        string? title,
+        string? icon,
+        int order,
+        bool showInNavigation)
+        => Web(path, view, title, icon, order, showInNavigation, localizedTitles: null);
+
+    public static PluginRouteDefinition Web(
+        string path,
+        string view,
+        string? title,
+        string? icon,
+        int order,
+        bool showInNavigation,
+        IReadOnlyDictionary<string, string>? localizedTitles)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(view);
+        return new PluginRouteDefinition(
+            path,
+            component: null,
+            view,
+            title,
+            icon,
+            order,
+            showInNavigation,
+            localizedTitles);
+    }
+
+    public PluginRouteDefinition WithLocalizedTitles(
+        IReadOnlyDictionary<string, string>? localizedTitles)
+        => new(
+            Path,
+            Component,
+            View,
+            Title,
+            Icon,
+            Order,
+            ShowInNavigation,
+            localizedTitles)
+        { IconFile = IconFile, IconImage = IconImage };
+
+    public string? GetTitle(CultureInfo culture)
+    {
+        ArgumentNullException.ThrowIfNull(culture);
+        if (LocalizedTitles.TryGetValue(culture.Name, out var exact))
+        {
+            return exact;
+        }
+
+        if (LocalizedTitles.TryGetValue(culture.TwoLetterISOLanguageName, out var neutral))
+        {
+            return neutral;
+        }
+
+        var languageMatch = LocalizedTitles.FirstOrDefault(pair =>
+            string.Equals(
+                CultureInfo.GetCultureInfo(pair.Key).TwoLetterISOLanguageName,
+                culture.TwoLetterISOLanguageName,
+                StringComparison.OrdinalIgnoreCase));
+        return languageMatch.Value ?? Title;
+    }
+
+    private static IReadOnlyDictionary<string, string> NormalizeLocalizedTitles(
+        IReadOnlyDictionary<string, string>? localizedTitles)
+    {
+        if (localizedTitles is null || localizedTitles.Count == 0)
+        {
+            return ReadOnlyDictionary<string, string>.Empty;
+        }
+
+        var normalized = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (cultureName, title) in localizedTitles)
+        {
+            if (string.IsNullOrWhiteSpace(cultureName) || string.IsNullOrWhiteSpace(title))
+            {
+                throw new ArgumentException("Localized route titles require a culture name and non-empty title.");
+            }
+
+            var culture = CultureInfo.GetCultureInfo(cultureName.Trim());
+            if (!normalized.TryAdd(culture.Name, title.Trim()))
+            {
+                throw new ArgumentException($"Localized route title culture '{culture.Name}' is duplicated.");
+            }
+        }
+
+        return new ReadOnlyDictionary<string, string>(normalized);
+    }
+}
+
+public sealed record PluginWebContributions(
+    IReadOnlyList<string> Head,
+    IReadOnlyList<string> PostBlazor)
+{
+    public static PluginWebContributions Empty { get; } = new([], []);
+}

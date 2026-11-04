@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="LanguageEyebrow" xml:space="preserve"><value>LANGUAGE</value></data>
+  <data name="QuantumHome" xml:space="preserve"><value>Quantum home</value></data>
+  <data name="PluginPageCountPlural" xml:space="preserve"><value>v{0} · {1} pages</value></data>
+  <data name="ThesePluginsWillAlsoBeUninstalled" xml:space="preserve"><value>These plugins will also be uninstalled:</value></data>
+  <data name="ThesePluginsWillAlsoBeDisabled" xml:space="preserve"><value>These plugins will also be disabled:</value></data>
+  <data name="KeepVArgPackageContainsVArg" xml:space="preserve"><value>Keep v{0} (package contains v{1})</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="DismissMessage" xml:space="preserve"><value>Dismiss message</value></data>
+  <data name="CompatibilityCheckFailed" xml:space="preserve"><value>Compatibility check failed</value></data>
+  <data name="Upgrade" xml:space="preserve"><value>Upgrade</value></data>
+  <data name="UpTo512MiB256PluginsPerPackage" xml:space="preserve"><value>Up to 512 MiB · 256 plugins per package</value></data>
+  <data name="ReadyToInstallPluginsPlural" xml:space="preserve"><value>Ready to install {0} plugins</value></data>
+  <data name="Uninstall" xml:space="preserve"><value>Uninstall</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="InstallAPluginBundle" xml:space="preserve"><value>Install a plugin bundle</value></data>
+  <data name="InstallFromThisDevice" xml:space="preserve"><value>Install from this device</value></data>
+  <data name="SelectAQuantumPluginZIP" xml:space="preserve"><value>Select a Quantum plugin ZIP</value></data>
+  <data name="ChooseAZIPFileOrDragItOnto" xml:space="preserve"><value>Choose a ZIP file or drag it onto this window.</value></data>
+  <data name="ChooseZIP" xml:space="preserve"><value>Choose ZIP</value></data>
+  <data name="DragAZIPAnywhereOntoThisWindow" xml:space="preserve"><value>Drag a ZIP anywhere onto this window</value></data>
+  <data name="InstallAPluginZIPToGetStarted" xml:space="preserve"><value>Install a plugin ZIP to get started.</value></data>
+  <data name="NoInstalledPluginsFound" xml:space="preserve"><value>No plugins found</value></data>
+  <data name="Disabled" xml:space="preserve"><value>Disabled</value></data>
+  <data name="DisabledPlugins" xml:space="preserve"><value>Disabled plugins</value></data>
+  <data name="OpenSettings" xml:space="preserve"><value>Open settings</value></data>
+  <data name="PluginInstallationFailedArg" xml:space="preserve"><value>Plugin installation failed: {0}</value></data>
+  <data name="PluginNavigation" xml:space="preserve"><value>Plugin navigation</value></data>
+  <data name="PluginOperationFailedArg" xml:space="preserve"><value>Plugin operation failed: {0}</value></data>
+  <data name="YouCanEnableThisPluginAgainLater" xml:space="preserve"><value>You can enable this plugin again later.</value></data>
+  <data name="PluginRuntimeStatus" xml:space="preserve"><value>Installed plugins</value></data>
+  <data name="PluginPageNotFound" xml:space="preserve"><value>Plugin page not found</value></data>
+  <data name="CouldNotStartPluginPage" xml:space="preserve"><value>Could not start plugin page</value></data>
+  <data name="InstallNewPlugin" xml:space="preserve"><value>Install</value></data>
+  <data name="CouldNotPrepareUninstallArg" xml:space="preserve"><value>Could not prepare uninstall: {0}</value></data>
+  <data name="CouldNotPrepareDisableArg" xml:space="preserve"><value>Could not prepare disable: {0}</value></data>
+  <data name="CouldNotReadPluginZIPArg" xml:space="preserve"><value>Could not read plugin ZIP: {0}</value></data>
+  <data name="DisplayLanguage" xml:space="preserve"><value>Display language</value></data>
+  <data name="PluginsNotLoaded" xml:space="preserve"><value>Plugins not loaded</value></data>
+  <data name="UnknownPlugin" xml:space="preserve"><value>Unknown plugin</value></data>
+  <data name="DropToInstallThePluginBundle" xml:space="preserve"><value>Drop a plugin ZIP</value></data>
+  <data name="DropToScanThePluginBundle" xml:space="preserve"><value>Drop to preview plugins</value></data>
+  <data name="ProcessingPluginPackage" xml:space="preserve"><value>Processing plugin package</value></data>
+  <data name="Installing" xml:space="preserve"><value>Installing…</value></data>
+  <data name="ThisPermanentlyRemovesThePluginAndItsFiles" xml:space="preserve"><value>This permanently removes the plugin and its files.</value></data>
+  <data name="PermanentlyUninstallArg" xml:space="preserve"><value>Permanently uninstall {0}?</value></data>
+  <data name="UninstallPermanently" xml:space="preserve"><value>Uninstall permanently</value></data>
+  <data name="NoDisabledPlugins" xml:space="preserve"><value>No disabled plugins</value></data>
+  <data name="NoPluginRegisteredAPageFor" xml:space="preserve"><value>No plugin registered a page for</value></data>
+  <data name="RegisteredPageSentenceEnd" xml:space="preserve"><value>.</value></data>
+  <data name="Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="YourCurrentPluginsWillBeKeptIfInstallation" xml:space="preserve"><value>Your current plugins will be kept if installation fails.</value></data>
+  <data name="ConfirmInstall" xml:space="preserve"><value>Install</value></data>
+  <data name="DisableArg" xml:space="preserve"><value>Disable {0}?</value></data>
+  <data name="ConfirmDisable" xml:space="preserve"><value>Disable</value></data>
+  <data name="Disable" xml:space="preserve"><value>Disable</value></data>
+  <data name="DisabledPluginsCanBeEnabledAgainHereAt" xml:space="preserve"><value>Disabled plugins can be enabled again here at any time.</value></data>
+  <data name="ManageYourPlugins" xml:space="preserve"><value>Manage your plugins.</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="ThisAddressBelongsToNeitherQuantumNorA" xml:space="preserve"><value>Check the address and try again.</value></data>
+  <data name="NoOtherPluginsWillBeAffected" xml:space="preserve"><value>No other plugins will be affected.</value></data>
+  <data name="LanguageAndRegion" xml:space="preserve"><value>Language and region</value></data>
+  <data name="Skip" xml:space="preserve"><value>Skip</value></data>
+  <data name="Running" xml:space="preserve"><value>Running</value></data>
+  <data name="ThisPluginPackageCannotBeInstalled" xml:space="preserve"><value>This plugin package cannot be installed</value></data>
+  <data name="NothingHereYet" xml:space="preserve"><value>Nothing here yet</value></data>
+  <data name="EnableAgain" xml:space="preserve"><value>Enable again</value></data>
+  <data name="RefreshPlugins" xml:space="preserve"><value>Refresh plugins</value></data>
+  <data name="CouldNotUpdatePluginWebContributionsArg" xml:space="preserve"><value>Could not update plugin Web contributions: {0}</value></data>
+  <data name="PluginArgIsNotLoadedTryRescanning" xml:space="preserve"><value>Plugin '{0}' is not loaded. Try rescanning.</value></data>
+  <data name="TheOnDiskVersionOfPluginArgIs" xml:space="preserve"><value>The on-disk version of plugin '{0}' is invalid or missing. The current version remains active.</value></data>
+  <data name="TheNewSnapshotWouldInvalidateLoadedPluginsSo" xml:space="preserve"><value>Update cancelled because another plugin would stop working: {0}.</value></data>
+  <data name="PluginArgWasHotSwappedFromArgTo" xml:space="preserve"><value>Plugin '{0}' updated from {1} to {2}.</value></data>
+  <data name="PluginArgWasHotSwappedFromArgTo2" xml:space="preserve"><value>Plugin '{0}' updated from {1} to {2}. Related plugins were restarted: {3}.</value></data>
+  <data name="PluginArgIsNotLoaded" xml:space="preserve"><value>Plugin '{0}' is not loaded.</value></data>
+  <data name="ThePluginCatalogChangedConfirmDisablingPluginArg" xml:space="preserve"><value>The plugin list changed. Review and confirm disabling '{0}' again.</value></data>
+  <data name="ArgAlreadyExistsInTheDisabledDirectoryNo" xml:space="preserve"><value>'{0}' already exists in the disabled directory. No plugins were changed.</value></data>
+  <data name="TheNewSnapshotWouldInvalidateOtherLoadedPlugins" xml:space="preserve"><value>Disable cancelled because another plugin would stop working: {0}.</value></data>
+  <data name="PluginArgWasDisabledAndMovedToModules" xml:space="preserve"><value>Plugin '{0}' was disabled.</value></data>
+  <data name="PluginArgAndItsStronglyDependentDownstreamPlugins" xml:space="preserve"><value>Plugin '{0}' and these related plugins were disabled: {1}.</value></data>
+  <data name="CouldNotDisablePluginArgDirectoriesWereRolled" xml:space="preserve"><value>Could not disable plugin '{0}'; directories were rolled back: {1}</value></data>
+  <data name="PluginArgWasNotFoundInTheDisabled" xml:space="preserve"><value>Plugin '{0}' was not found in the disabled directory.</value></data>
+  <data name="MultipleCopiesOfPluginArgExistInThe" xml:space="preserve"><value>Multiple copies of plugin '{0}' exist in the disabled directory, so Quantum cannot choose which one to enable.</value></data>
+  <data name="DirectoryArgAlreadyExistsInModulesSoPlugin" xml:space="preserve"><value>Directory '{0}' already exists in Modules, so plugin '{1}' cannot be enabled.</value></data>
+  <data name="DependencyOrCompatibilityChecksFailed" xml:space="preserve"><value>Dependency or compatibility checks failed.</value></data>
+  <data name="PluginArgCannotBeEnabledArg" xml:space="preserve"><value>Plugin '{0}' cannot be enabled: {1}</value></data>
+  <data name="EnablingWouldInvalidateLoadedPluginsSoTheOperation" xml:space="preserve"><value>Enabling would invalidate loaded plugins, so the operation was cancelled: {0}.</value></data>
+  <data name="PluginArgWasEnabledAndMovedBackTo" xml:space="preserve"><value>Plugin '{0}' was enabled.</value></data>
+  <data name="CouldNotEnablePluginArgDirectoriesWereRolled" xml:space="preserve"><value>Could not enable plugin '{0}'; directories were rolled back: {1}</value></data>
+  <data name="ThePluginCatalogChangedConfirmUninstallingPluginArg" xml:space="preserve"><value>The plugin list changed. Review and confirm uninstalling '{0}' again.</value></data>
+  <data name="PluginArgIsNotInstalled" xml:space="preserve"><value>Plugin '{0}' is not installed.</value></data>
+  <data name="MultipleCopiesOfPluginArgExistInThe2" xml:space="preserve"><value>Multiple copies of plugin '{0}' exist in the disabled directory, so Quantum cannot choose which one to uninstall.</value></data>
+  <data name="CouldNotDeleteThePhysicalFilesForPlugin" xml:space="preserve"><value>Could not delete the physical files for plugin '{0}': '{1}'.</value></data>
+  <data name="DisabledPluginArgWasPermanentlyUninstalledAndIts" xml:space="preserve"><value>Disabled plugin '{0}' was permanently uninstalled.</value></data>
+  <data name="TheNewSnapshotWouldInvalidateOtherLoadedPlugins2" xml:space="preserve"><value>Uninstall cancelled because another plugin would stop working: {0}.</value></data>
+  <data name="ThePluginStoppedButItsPhysicalFilesCould" xml:space="preserve"><value>The plugin stopped, but its physical files could not be deleted: '{0}'. Close programs using those files, then remove the directory.</value></data>
+  <data name="PluginArgWasPermanentlyUninstalledAndItsPhysical" xml:space="preserve"><value>Plugin '{0}' was permanently uninstalled.</value></data>
+  <data name="PluginArgAndItsStronglyDependentDownstreamPlugins2" xml:space="preserve"><value>Plugin '{0}' and these related plugins were permanently uninstalled: {1}.</value></data>
+  <data name="CouldNotUninstallPluginArgDirectoriesWereRolled" xml:space="preserve"><value>Could not uninstall plugin '{0}'; directories were rolled back: {1}</value></data>
+  <data name="ModulesWasRescannedAndThePluginRuntimeSnapshot" xml:space="preserve"><value>Plugins refreshed.</value></data>
+  <data name="OnlyZIPPluginPackagesAreSupported" xml:space="preserve"><value>Only ZIP plugin packages are supported.</value></data>
+  <data name="TheInstallationPreviewExpiredDropTheZIPPackage" xml:space="preserve"><value>The installation preview expired. Drop the ZIP package again.</value></data>
+  <data name="ThePluginCatalogChangedBeforeConfirmationDropThe" xml:space="preserve"><value>The plugin catalog changed before confirmation. Drop the ZIP package again and confirm the latest catalog.</value></data>
+  <data name="PluginFilesOrDependencyStateChangedBeforeConfirmation" xml:space="preserve"><value>Plugin files or dependency state changed before confirmation. Drop the ZIP package again.</value></data>
+  <data name="TheResultingPluginCatalogIsIncompatibleNoPlugins" xml:space="preserve"><value>The resulting plugin catalog is incompatible. No plugins were installed: {0}</value></data>
+  <data name="TheSelectedInstallationVersionForPluginArgChanged" xml:space="preserve"><value>The selected installation version for plugin '{0}' changed. No plugins were installed.</value></data>
+  <data name="InstallationWouldInvalidateLoadedPluginsNoPluginsWere" xml:space="preserve"><value>Installation would invalidate loaded plugins. No plugins were installed: {0}.</value></data>
+  <data name="ArgModulesFilesWereRestored" xml:space="preserve"><value>{0} plugin files were restored.</value></data>
+  <data name="InstalledPluginsPlural" xml:space="preserve"><value>Installed {0} plugins: {1}.</value></data>
+  <data name="PluginInstallationWasCancelledButModulesFilesWere" xml:space="preserve"><value>Installation was cancelled, but some plugin files could not be restored.</value></data>
+  <data name="PluginInstallationFailedAndFileRestorationDidNot" xml:space="preserve"><value>Plugin installation failed and file restoration did not complete. Check Modules: {0}; restoration error: {1}</value></data>
+  <data name="PluginInstallationFailedNoPluginsWereInstalledArg" xml:space="preserve"><value>Plugin installation failed. No plugins were installed: {0}</value></data>
+  <data name="TheNewPluginSnapshotCouldNotBeLoaded" xml:space="preserve"><value>Updated plugins could not be loaded. The current versions remain available: {0}</value></data>
+  <data name="AnExistingPluginLifecycleCouldNotStopSo" xml:space="preserve"><value>An existing plugin lifecycle could not stop, so the hot swap was cancelled: {0}</value></data>
+  <data name="TheNewPluginLifecycleFailedToStartAnd" xml:space="preserve"><value>The new plugin lifecycle failed to start and the current version was restored: {0}</value></data>
+  <data name="ThePluginRuntimeSnapshotWasUpdated" xml:space="preserve"><value>Plugins updated.</value></data>
+  <data name="MultipleModulesDirectoriesDeclareTheSamePluginId" xml:space="preserve"><value>Multiple Modules directories declare the same plugin id, so a unique version catalog cannot be created.</value></data>
+  <data name="TheZIPContainsMultipleCopiesOfVersionArg" xml:space="preserve"><value>The ZIP contains multiple copies of version {0}, so Quantum cannot choose which directory to install.</value></data>
+  <data name="ThisPluginIsDisabledEnableItAgainOr" xml:space="preserve"><value>This plugin is disabled. Enable it again or remove the disabled version before installing.</value></data>
+  <data name="TargetDirectoryArgExistsButIsNotA" xml:space="preserve"><value>Target directory '{0}' exists but is not a valid installed plugin.</value></data>
+  <data name="TheNewPluginVersionCatalogWouldInvalidateA" xml:space="preserve"><value>The new plugin version catalog would invalidate a currently loaded plugin.</value></data>
+  <data name="TheZIPContainsNoPluginNewerThanThe" xml:space="preserve"><value>The ZIP contains no plugin newer than the installed version.</value></data>
+  <data name="ThePluginZIPIsEmptyOrContainsToo" xml:space="preserve"><value>The plugin ZIP is empty or contains too many files.</value></data>
+  <data name="ThePluginZIPContainsDuplicatePathArg" xml:space="preserve"><value>The plugin ZIP contains duplicate path '{0}'.</value></data>
+  <data name="ThePluginZIPCannotContainSymbolicLinkArg" xml:space="preserve"><value>The plugin ZIP cannot contain symbolic link '{0}'.</value></data>
+  <data name="TheExpandedPluginZIPExceedsTheSizeLimit" xml:space="preserve"><value>The expanded plugin ZIP exceeds the size limit.</value></data>
+  <data name="ThePluginZIPContainsUnsafePathArg" xml:space="preserve"><value>The plugin ZIP contains unsafe path '{0}'.</value></data>
+  <data name="NoPluginDirectoryWasFoundInTheZIP" xml:space="preserve"><value>No plugin directory was found in the ZIP; each plugin folder must contain plugin.json at its root.</value></data>
+  <data name="TheZIPContainsTooManyPlugins" xml:space="preserve"><value>The ZIP contains too many plugins.</value></data>
+  <data name="PluginDirectoriesInTheZIPCannotBeNested" xml:space="preserve"><value>Plugin directories in the ZIP cannot be nested inside one another.</value></data>
+  <data name="ThePluginZIPExceedsTheSizeLimit" xml:space="preserve"><value>The plugin ZIP exceeds the size limit.</value></data>
+  <data name="ThePluginZIPIsEmpty" xml:space="preserve"><value>The plugin ZIP is empty.</value></data>
+  <data name="ExpandedZIPEntryArgExceedsItsDeclaredLength" xml:space="preserve"><value>Expanded ZIP entry '{0}' exceeds its declared length.</value></data>
+  <data name="ExpandedZIPEntryArgDoesNotMatchIts" xml:space="preserve"><value>Expanded ZIP entry '{0}' does not match its declared length.</value></data>
+  <data name="PluginInstallationTargetArgIsOutsideTheModules" xml:space="preserve"><value>Plugin installation target '{0}' is outside the Modules root.</value></data>
+  <data name="DisabledPluginDirectoryArgIsOutsideModulesDisabled" xml:space="preserve"><value>Disabled plugin directory '{0}' is outside Modules/disabled.</value></data>
+  <data name="PluginDirectoryDoesNotExistArg" xml:space="preserve"><value>Plugin directory does not exist: '{0}'.</value></data>
+  <data name="TheTargetPluginDirectoryAlreadyExistsArg" xml:space="preserve"><value>The target plugin directory already exists: '{0}'.</value></data>
+  <data name="PluginPageCountSingular" xml:space="preserve"><value>v{0} · {1} page</value></data>
+  <data name="ReadyToInstallPluginSingular" xml:space="preserve"><value>Ready to install {0} plugin</value></data>
+  <data name="InstalledPluginSingular" xml:space="preserve"><value>Installed {0} plugin: {1}.</value></data>
+  <data name="SettingsEyebrow" xml:space="preserve"><value>SETTINGS</value></data>
+  <data name="InstallEyebrow" xml:space="preserve"><value>INSTALL</value></data>
+  <data name="RuntimeEyebrow" xml:space="preserve"><value>INSTALLED</value></data>
+  <data name="DisabledEyebrow" xml:space="preserve"><value>DISABLED</value></data>
+  <data name="DISABLEPLUGIN" xml:space="preserve"><value>DISABLE PLUGIN</value></data>
+  <data name="UNINSTALLPLUGIN" xml:space="preserve"><value>UNINSTALL PLUGIN</value></data>
+  <data name="ATTENTION" xml:space="preserve"><value>ATTENTION</value></data>
+  <data name="INSTALLPLUGINS" xml:space="preserve"><value>INSTALL PLUGINS</value></data>
+  <data name="WEBPLUGINERROR" xml:space="preserve"><value>WEB PLUGIN ERROR</value></data>
+  <data name="PLUGINROUTE" xml:space="preserve"><value>PLUGIN ROUTE</value></data>
+  <data name="MARKETPLACE" xml:space="preserve"><value>MARKETPLACE</value></data>
+  <data name="DiscoverEyebrow" xml:space="preserve"><value>DISCOVER</value></data>
+  <data name="PluginDetailsEyebrow" xml:space="preserve"><value>PLUGIN DETAILS</value></data>
+  <data name="INSTALLPLUGIN" xml:space="preserve"><value>INSTALL PLUGIN</value></data>
+  <data name="PluginMarketplace" xml:space="preserve"><value>Plugin marketplace</value></data>
+  <data name="FindPluginsForQuantum" xml:space="preserve"><value>Find plugins for Quantum.</value></data>
+  <data name="QuantumPlatform" xml:space="preserve"><value>Quantum Platform</value></data>
+  <data name="SearchNamesIdsOrDescriptions" xml:space="preserve"><value>Search names, ids, or descriptions</value></data>
+  <data name="Search" xml:space="preserve"><value>Search</value></data>
+  <data name="ConnectingToTheMarketplace" xml:space="preserve"><value>Connecting to the marketplace…</value></data>
+  <data name="NoMarketplacePluginsFound" xml:space="preserve"><value>No plugins found</value></data>
+  <data name="TryAnotherSearchClearTheTagFilterOr" xml:space="preserve"><value>Try another search, clear the tag filter, or check the platform address.</value></data>
+  <data name="Reload2" xml:space="preserve"><value>Reload</value></data>
+  <data name="ArgAvailablePlugins" xml:space="preserve"><value>{0} available plugins</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Installed" xml:space="preserve"><value>Installed</value></data>
+  <data name="NoDescription" xml:space="preserve"><value>No description</value></data>
+  <data name="By" xml:space="preserve"><value>By</value></data>
+  <data name="Details" xml:space="preserve"><value>Details</value></data>
+  <data name="Get" xml:space="preserve"><value>Get</value></data>
+  <data name="UpdatePlugin" xml:space="preserve"><value>Update plugin</value></data>
+  <data name="PublishedVersions" xml:space="preserve"><value>Published versions</value></data>
+  <data name="Downloads" xml:space="preserve"><value>downloads</value></data>
+  <data name="SupportsQuantumArg" xml:space="preserve"><value>Supports Quantum {0}</value></data>
+  <data name="ReadyToInstallArg" xml:space="preserve"><value>Ready to install {0}</value></data>
+  <data name="CannotInstallArg" xml:space="preserve"><value>Cannot install {0}</value></data>
+  <data name="LocalPreflightFailed" xml:space="preserve"><value>Local preflight failed</value></data>
+  <data name="ThePackageIsReadyToInstall" xml:space="preserve"><value>The package is ready to install.</value></data>
+  <data name="CouldNotConnectToTheMarketplaceArg" xml:space="preserve"><value>Could not connect to the marketplace: {0}</value></data>
+  <data name="ArgIsIncompatibleWithQuantumArgRequiresArg" xml:space="preserve"><value>{0} is incompatible with Quantum {1} (requires {2}).</value></data>
+  <data name="UnknownVersion" xml:space="preserve"><value>unknown version</value></data>
+  <data name="TheDownloadedPackageExceedsTheLocalInstallationSize" xml:space="preserve"><value>The downloaded package exceeds the local installation size limit.</value></data>
+  <data name="DEVELOPERCONSOLE" xml:space="preserve"><value>DEVELOPER CONSOLE</value></data>
+  <data name="PUBLISHONQUANTUM" xml:space="preserve"><value>PUBLISH ON QUANTUM</value></data>
+  <data name="MyPluginsEyebrow" xml:space="preserve"><value>MY PLUGINS</value></data>
+  <data name="PLUGINSETTINGS" xml:space="preserve"><value>PLUGIN SETTINGS</value></data>
+  <data name="NewPluginEyebrow" xml:space="preserve"><value>NEW PLUGIN</value></data>
+  <data name="ReleasesEyebrow" xml:space="preserve"><value>RELEASES</value></data>
+  <data name="REVIEWQUEUE" xml:space="preserve"><value>REVIEW QUEUE</value></data>
+  <data name="DeletePluginEyebrow" xml:space="preserve"><value>DELETE PLUGIN</value></data>
+  <data name="DeveloperCenter" xml:space="preserve"><value>Developer center</value></data>
+  <data name="PublishPluginsManageReleasesAndReviewSubmissions" xml:space="preserve"><value>Publish plugins, manage releases, and review submissions.</value></data>
+  <data name="SignOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="SigningYouIn" xml:space="preserve"><value>Signing you in…</value></data>
+  <data name="BringYourPluginToEveryQuantum" xml:space="preserve"><value>Bring your plugin to every Quantum</value></data>
+  <data name="DeveloperAccountsUseEmailAndPasswordUploadedPackages" xml:space="preserve"><value>Developer accounts use email and password. Uploaded packages enter review, with results delivered by email.</value></data>
+  <data name="CreateAPluginListing" xml:space="preserve"><value>Create a plugin listing</value></data>
+  <data name="UploadAVersionedZIP" xml:space="preserve"><value>Upload a versioned ZIP</value></data>
+  <data name="EnterTheMarketplaceAfterReview" xml:space="preserve"><value>Enter the marketplace after review</value></data>
+  <data name="SignIn" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Register" xml:space="preserve"><value>Register</value></data>
+  <data name="DeveloperName" xml:space="preserve"><value>Developer name</value></data>
+  <data name="Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Password" xml:space="preserve"><value>Password</value></data>
+  <data name="PasswordsMustContainAtLeast12Characters" xml:space="preserve"><value>Passwords must contain at least 12 characters.</value></data>
+  <data name="SignInWithEmail" xml:space="preserve"><value>Sign in with email</value></data>
+  <data name="CreateDeveloperAccount" xml:space="preserve"><value>Create developer account</value></data>
+  <data name="Publishing" xml:space="preserve"><value>Publishing</value></data>
+  <data name="ReviewConsole" xml:space="preserve"><value>Review console</value></data>
+  <data name="MyPlugins" xml:space="preserve"><value>My plugins</value></data>
+  <data name="NewPlugin" xml:space="preserve"><value>New plugin</value></data>
+  <data name="NoPluginsYetCreateAListingToBegin" xml:space="preserve"><value>No plugins yet. Create a listing to begin.</value></data>
+  <data name="NoReleases" xml:space="preserve"><value>No releases</value></data>
+  <data name="PluginDetails" xml:space="preserve"><value>Plugin details</value></data>
+  <data name="DeletePlugin" xml:space="preserve"><value>Delete plugin</value></data>
+  <data name="CreatePlugin" xml:space="preserve"><value>Create plugin</value></data>
+  <data name="PluginID" xml:space="preserve"><value>Plugin ID</value></data>
+  <data name="Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Tags" xml:space="preserve"><value>Tags</value></data>
+  <data name="CommaSeparatedUpTo20Tags" xml:space="preserve"><value>Comma-separated, up to 20 tags.</value></data>
+  <data name="ClearSelection" xml:space="preserve"><value>Clear selection</value></data>
+  <data name="SavePluginDetails" xml:space="preserve"><value>Save plugin details</value></data>
+  <data name="ReleaseManagement" xml:space="preserve"><value>Release management</value></data>
+  <data name="ArgReleases" xml:space="preserve"><value>{0} releases</value></data>
+  <data name="Version" xml:space="preserve"><value>Version</value></data>
+  <data name="QuantumVersionRange" xml:space="preserve"><value>Quantum version range</value></data>
+  <data name="ReleaseNotes" xml:space="preserve"><value>Release notes</value></data>
+  <data name="PluginZIP" xml:space="preserve"><value>Plugin ZIP</value></data>
+  <data name="ChooseAFile" xml:space="preserve"><value>Choose a file</value></data>
+  <data name="UploadForReview" xml:space="preserve"><value>Upload for review</value></data>
+  <data name="Pending" xml:space="preserve"><value>Pending</value></data>
+  <data name="Published" xml:space="preserve"><value>Published</value></data>
+  <data name="Rejected" xml:space="preserve"><value>Rejected</value></data>
+  <data name="PendingReleases" xml:space="preserve"><value>Pending releases</value></data>
+  <data name="TheReviewQueueIsClear" xml:space="preserve"><value>The review queue is clear</value></data>
+  <data name="ReviewNotesOptional" xml:space="preserve"><value>Review notes (optional)</value></data>
+  <data name="Reject" xml:space="preserve"><value>Reject</value></data>
+  <data name="ApproveAndPublish" xml:space="preserve"><value>Approve and publish</value></data>
+  <data name="PermanentlyDeleteArg" xml:space="preserve"><value>Permanently delete {0}?</value></data>
+  <data name="EveryReleaseAndServerSidePackageForThis" xml:space="preserve"><value>Every release and server-side package for this plugin will be permanently deleted.</value></data>
+  <data name="DeletePermanently" xml:space="preserve"><value>Delete permanently</value></data>
+  <data name="SignedIn" xml:space="preserve"><value>Signed in.</value></data>
+  <data name="PluginDetailsSaved" xml:space="preserve"><value>Plugin details saved.</value></data>
+  <data name="PluginDeleted" xml:space="preserve"><value>Plugin deleted.</value></data>
+  <data name="TheReleaseWasSubmittedForReview" xml:space="preserve"><value>The release was submitted for review.</value></data>
+  <data name="TheReleaseWasPublished" xml:space="preserve"><value>The release was published.</value></data>
+  <data name="TheReleaseWasRejected" xml:space="preserve"><value>The release was rejected.</value></data>
+  <data name="TESTCHANNEL" xml:space="preserve"><value>TEST CHANNEL</value></data>
+  <data name="CLIENTSCOPE" xml:space="preserve"><value>GET STARTED</value></data>
+  <data name="DEVELOPERSIGNIN" xml:space="preserve"><value>DEVELOPER SIGN IN</value></data>
+  <data name="TESTRELEASES" xml:space="preserve"><value>TEST RELEASES</value></data>
+  <data name="LOCALINSTALLCHECK" xml:space="preserve"><value>INSTALL PREVIEW</value></data>
+  <data name="DeveloperTesting" xml:space="preserve"><value>Developer testing</value></data>
+  <data name="DownloadAndTestYourPendingReleases" xml:space="preserve"><value>Download and test your pending releases.</value></data>
+  <data name="OpenPublishingPortal" xml:space="preserve"><value>Open publishing portal</value></data>
+  <data name="DownloadAndInstallYourReleases" xml:space="preserve"><value>Download and install your releases</value></data>
+  <data name="CreateAndPublishPluginsInTheWebPortal" xml:space="preserve"><value>Create and publish plugins in the web portal. Sign in here to test your releases.</value></data>
+  <data name="EmailSignIn" xml:space="preserve"><value>Email sign-in</value></data>
+  <data name="ViewOwnedReleases" xml:space="preserve"><value>View owned releases</value></data>
+  <data name="DownloadAndPreflightLocally" xml:space="preserve"><value>Download and review</value></data>
+  <data name="SignInToYourDeveloperAccount" xml:space="preserve"><value>Sign in to your developer account</value></data>
+  <data name="SigningIn" xml:space="preserve"><value>Signing in…</value></data>
+  <data name="NeedAnAccountRegisterInTheWebPublishing" xml:space="preserve"><value>Need an account? Register in the web publishing portal.</value></data>
+  <data name="NoPluginsYet" xml:space="preserve"><value>No plugins yet</value></data>
+  <data name="CreateAPluginAndUploadAReleaseIn" xml:space="preserve"><value>Create a plugin and upload a release in the web publishing portal first.</value></data>
+  <data name="SelectAPluginToViewTestReleases" xml:space="preserve"><value>Select a plugin to view test releases</value></data>
+  <data name="OnlyPendingReleasesYouOwnReceiveTestDownload" xml:space="preserve"><value>Only pending releases you own receive test download access.</value></data>
+  <data name="Releases" xml:space="preserve"><value>releases</value></data>
+  <data name="DownloadableOnlyByYouAndReviewers" xml:space="preserve"><value>Downloadable only by you and reviewers</value></data>
+  <data name="PublicMarketplaceRelease" xml:space="preserve"><value>Public marketplace release</value></data>
+  <data name="DownloadAndInstall" xml:space="preserve"><value>Download and install</value></data>
+  <data name="RejectedReleasesCannotBeDownloadedUploadANew" xml:space="preserve"><value>Rejected releases cannot be downloaded. Upload a new version on the web.</value></data>
+  <data name="SelectAPluginFirst" xml:space="preserve"><value>Select a plugin first.</value></data>
+  <data name="MarketplaceViews" xml:space="preserve"><value>Marketplace views</value></data>
+  <data name="Discover" xml:space="preserve"><value>Discover</value></data>
+  <data name="MyTestReleases" xml:space="preserve"><value>My test releases</value></data>
+  <data name="AppUpdates" xml:space="preserve"><value>Quantum updates</value></data>
+  <data name="InstalledAppVersion" xml:space="preserve"><value>Installed version: {0}</value></data>
+  <data name="AvailableAppVersion" xml:space="preserve"><value>New version available: {0}</value></data>
+  <data name="CheckForAppUpdates" xml:space="preserve"><value>Check for updates</value></data>
+  <data name="UpdateAppAndRestart" xml:space="preserve"><value>Update and restart</value></data>
+  <data name="AppUpdateRestartNotice" xml:space="preserve"><value>Save your work first. Quantum will download the update and restart automatically. Delta updates are preferred; a full download is used when necessary.</value></data>
+  <data name="AppUpdateUnavailable" xml:space="preserve"><value>Install Quantum using the official desktop installer to enable updates. Updates are unavailable in development builds.</value></data>
+  <data name="AppUpdateIdle" xml:space="preserve"><value>Updates are checked automatically on startup.</value></data>
+  <data name="AppUpdateChecking" xml:space="preserve"><value>Checking for updates…</value></data>
+  <data name="AppUpdateCurrent" xml:space="preserve"><value>Quantum is up to date.</value></data>
+  <data name="AppUpdateAvailable" xml:space="preserve"><value>A new Quantum version is ready to download.</value></data>
+  <data name="AppUpdateDownloading" xml:space="preserve"><value>Downloading and verifying the update…</value></data>
+  <data name="AppUpdateReady" xml:space="preserve"><value>An update has been downloaded and is ready to install.</value></data>
+  <data name="AppUpdateApplying" xml:space="preserve"><value>Installing the update and restarting Quantum…</value></data>
+  <data name="AppUpdateFailed" xml:space="preserve"><value>The update did not complete. Check your connection and retry. Your installed version is still available.</value></data>
+  <data name="InstallingPlugin" xml:space="preserve"><value>Installing…</value></data>
+  <data name="MarketplacePluginIncompatible" xml:space="preserve"><value>{0} is not compatible with Quantum {1}.</value></data>
+  <data name="MarketplacePackageIdentityMismatch" xml:space="preserve"><value>The package does not match the selected plugin and version. Nothing was installed.</value></data>
+  <data name="MobileAccess" xml:space="preserve"><value>Mobile access</value></data>
+  <data name="MobileAccessDescription" xml:space="preserve"><value>All mobile plugin pages are available automatically to devices signed in to the same Quantum account. Plugins execute on this computer.</value></data>
+  <data name="MobileConnected" xml:space="preserve"><value>Online</value></data>
+  <data name="MobileConnecting" xml:space="preserve"><value>Connecting automatically…</value></data>
+  <data name="MobileSharedPages" xml:space="preserve"><value>Available plugin pages</value></data>
+  <data name="MobileSameAccountHint" xml:space="preserve"><value>Sign in with the same account on your phone and select this computer. No device approval is required.</value></data>
+  <data name="MobileSignInFirst" xml:space="preserve"><value>Sign in to Quantum Platform in Marketplace first.</value></data>
+  <data name="MobileStartSharing" xml:space="preserve"><value>Start sharing</value></data>
+  <data name="MobileStopSharing" xml:space="preserve"><value>Stop sharing</value></data>
+  <data name="MobileDevices" xml:space="preserve"><value>Phone access requests</value></data>
+  <data name="MobileApprove" xml:space="preserve"><value>Approve</value></data>
+  <data name="MobileRevoke" xml:space="preserve"><value>Revoke</value></data>
+  <data name="AccountSettings" xml:space="preserve"><value>Account</value></data>
+  <data name="SignInToQuantum" xml:space="preserve"><value>Sign in to Quantum</value></data>
+  <data name="QuantumAccountHint" xml:space="preserve"><value>Sign in in Settings to connect mobile devices and access your developer test releases.</value></data>
+  <data name="PluginRpcInstallTitle" xml:space="preserve"><value>Install plugin?</value></data>
+  <data name="PluginRpcInstallPrompt" xml:space="preserve"><value>Plugin {0} requests to install {1}. Plugins can run code on this device. Continue only if you trust the requesting plugin and the package.</value></data>
+  <data name="PluginRpcInstallMarketplaceSource" xml:space="preserve"><value>Marketplace plugin '{0}'</value></data>
+  <data name="PluginRpcInstallLocalSource" xml:space="preserve"><value>local ZIP package '{0}'</value></data>
+  <data name="PluginRpcInstallDeclined" xml:space="preserve"><value>The plugin installation was declined.</value></data>
+  <data name="PluginRpcInstallUnavailable" xml:space="preserve"><value>Plugin installation is unavailable or the runtime is busy. Try again from an active plugin.</value></data>
+  <data name="PluginRpcInstallInvalidPayload" xml:space="preserve"><value>Provide a valid Marketplace plugin ID or a ZIP filename and its base64 contents.</value></data>
+  <data name="PluginRpcInstallFailed" xml:space="preserve"><value>The plugin could not be installed. See the Quantum logs for details.</value></data>
+  <data name="PluginRpcInstallNotFound" xml:space="preserve"><value>The requested installation was not found.</value></data>
+</root>

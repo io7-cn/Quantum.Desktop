@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Fixtures/OptionalFrameworkPackage/OptionalFrameworkPackage.csproj" ReferenceOutputAssembly="false" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Quantum\Quantum.csproj" />
+    <ProjectReference Include="..\Fixtures\Plugins\Quantum.ExampleDependentPlugin\Quantum.ExampleDependentPlugin.csproj" />
+    <ProjectReference Include="..\Fixtures\Plugins\Quantum.ExamplePlugin\Quantum.ExamplePlugin.csproj" />
+  </ItemGroup>
+  <Target Name="CopyOptionalFrameworkFixture" AfterTargets="Build">
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)../Fixtures/OptionalFrameworkPackage/bin/$(Configuration)/net10.0/System.Quantum.Optional.dll"
+          DestinationFolder="$(TargetDir)PrivateOptional" />
+  </Target>
+</Project>

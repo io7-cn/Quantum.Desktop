@@ -1,0 +1,26 @@
+using Microsoft.AspNetCore.Components.WebView.Maui;
+using Quantum.Components;
+using Quantum.Plugins;
+
+namespace Quantum;
+
+public sealed class MainPage : ContentPage
+{
+    public MainPage(PluginStaticAssetFileProvider pluginAssets)
+    {
+        Title = "Quantum";
+        BackgroundColor = Color.FromArgb("#FFFFFF");
+
+        var blazorWebView = new PluginBlazorWebView(pluginAssets)
+        {
+            HostPage = "wwwroot/index.html"
+        };
+        blazorWebView.RootComponents.Add(new RootComponent
+        {
+            Selector = "#app",
+            ComponentType = typeof(Routes)
+        });
+
+        Content = blazorWebView;
+    }
+}

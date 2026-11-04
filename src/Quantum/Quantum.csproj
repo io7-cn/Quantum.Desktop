@@ -1,0 +1,157 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('osx'))">net10.0;net10.0-maccatalyst</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">net10.0;net10.0-windows10.0.19041.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net10.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(QuantumCoreOnly)' == 'true'">net10.0</TargetFrameworks>
+    <OutputType Condition="'$(TargetFramework)' != 'net10.0'">Exe</OutputType>
+    <UseMaui Condition="'$(TargetFramework)' != 'net10.0'">true</UseMaui>
+    <SingleProject Condition="'$(TargetFramework)' != 'net10.0'">true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationTitle>Quantum</ApplicationTitle>
+    <ApplicationId>io.quantum.desktop</ApplicationId>
+    <ApplicationDisplayVersion>0.1.20</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <Version>$(ApplicationDisplayVersion)</Version>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
+    <MtouchLink Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">None</MtouchLink>
+    <UseInterpreter Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">true</UseInterpreter>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+    <WindowsPackageType Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Configuration)' == 'Debug'">None</WindowsPackageType>
+    <WindowsAppSDKSelfContained Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows' And '$(Configuration)' == 'Debug'">true</WindowsAppSDKSelfContained>
+  </PropertyGroup>
+
+  <!-- Direct desktop distribution: Velopack owns installation and updates. -->
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(QuantumDirectDistribution)' == 'true' And $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
+    <CodesignEntitlements>Platforms/MacCatalyst/DirectDistribution.entitlements</CodesignEntitlements>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0'">
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#6D5DFB" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#171528" BaseSize="128,128" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Condition="$([MSBuild]::IsOSPlatform('linux'))" />
+    <PackageReference Include="Velopack" />
+    <ProjectReference Include="../Quantum.Desktop.PlatformClient/Quantum.Desktop.PlatformClient.csproj" />
+    <PackageReference Include="Quantum.Plugin.Abstraction" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Localization" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="NOF.Abstraction" />
+    <PackageReference Include="NOF.Application" />
+    <PackageReference Include="NOF.Contract" />
+    <PackageReference Include="NOF.Domain" />
+    <PackageReference Include="NOF.Infrastructure" />
+    <PackageReference Include="NOF.Infrastructure.EntityFrameworkCore" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net10.0'">
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" />
+    <PackageReference Include="NOF.Hosting.Maui" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <Compile Remove="Shell\**\*.cs;Components\Hosting\PluginBlazorWebView.cs;Plugins\Runtime\PluginLifecycleInitializationStep.cs;Platforms\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Quantum.Tests" />
+    <InternalsVisibleTo Include="Quantum.HostIntegration.Tests" />
+  </ItemGroup>
+
+  <Target Name="BuildExamplePlugins"
+          BeforeTargets="Build"
+          Condition="'$(Configuration)' == 'Debug' And '$(TargetFramework)' != '' And '$(TargetFramework)' != 'net10.0'">
+    <MSBuild Projects="$(MSBuildProjectDirectory)\..\..\tests\Fixtures\Plugins\Quantum.ExamplePlugin\Quantum.ExamplePlugin.csproj;$(MSBuildProjectDirectory)\..\..\tests\Fixtures\Plugins\Quantum.ExampleDependentPlugin\Quantum.ExampleDependentPlugin.csproj"
+             Targets="Restore;Build"
+             Properties="Configuration=$(Configuration);TargetFramework=net10.0"
+             RemoveProperties="RuntimeIdentifier;TargetFrameworks" />
+  </Target>
+
+  <Target Name="StageExamplePlugin"
+          AfterTargets="Build"
+          Condition="'$(Configuration)' == 'Debug' And '$(TargetFramework)' != '' And '$(TargetFramework)' != 'net10.0'">
+    <PropertyGroup>
+      <ExamplePluginOutput>$(MSBuildProjectDirectory)\..\..\tests\Fixtures\Plugins\Quantum.ExamplePlugin\bin\$(Configuration)\net10.0</ExamplePluginOutput>
+      <ExamplePluginTarget>$(TargetDir)Modules\quantum.plugin.example</ExamplePluginTarget>
+    </PropertyGroup>
+    <ItemGroup>
+      <ExamplePluginBinary Include="$(ExamplePluginOutput)\Quantum.ExamplePlugin.dll" />
+      <ExamplePluginBinary Include="$(ExamplePluginOutput)\Quantum.ExamplePlugin.pdb" Condition="Exists('$(ExamplePluginOutput)\Quantum.ExamplePlugin.pdb')" />
+      <ExamplePluginBinary Include="$(ExamplePluginOutput)\plugin.json" />
+      <ExamplePluginResource Include="$(ExamplePluginOutput)\**\*.resources.dll" />
+      <ExamplePluginAsset Include="$(ExamplePluginOutput)\wwwroot\**\*" />
+    </ItemGroup>
+    <MakeDir Directories="$(ExamplePluginTarget)\wwwroot" />
+    <Copy SourceFiles="@(ExamplePluginBinary)" DestinationFolder="$(ExamplePluginTarget)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ExamplePluginResource)"
+          DestinationFolder="$(ExamplePluginTarget)\%(RecursiveDir)"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ExamplePluginAsset)"
+          DestinationFolder="$(ExamplePluginTarget)\wwwroot\%(RecursiveDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="StageExampleDependentPlugin"
+          AfterTargets="Build"
+          Condition="'$(Configuration)' == 'Debug' And '$(TargetFramework)' != '' And '$(TargetFramework)' != 'net10.0'">
+    <PropertyGroup>
+      <ExampleDependentPluginOutput>$(MSBuildProjectDirectory)\..\..\tests\Fixtures\Plugins\Quantum.ExampleDependentPlugin\bin\$(Configuration)\net10.0</ExampleDependentPluginOutput>
+      <ExampleDependentPluginTarget>$(TargetDir)Modules\quantum.plugin.example-dependent</ExampleDependentPluginTarget>
+    </PropertyGroup>
+    <ItemGroup>
+      <ExampleDependentPluginBinary Include="$(ExampleDependentPluginOutput)\Quantum.ExampleDependentPlugin.dll" />
+      <ExampleDependentPluginBinary Include="$(ExampleDependentPluginOutput)\Quantum.ExampleDependentPlugin.pdb" Condition="Exists('$(ExampleDependentPluginOutput)\Quantum.ExampleDependentPlugin.pdb')" />
+      <ExampleDependentPluginBinary Include="$(ExampleDependentPluginOutput)\plugin.json" />
+      <ExampleDependentPluginResource Include="$(ExampleDependentPluginOutput)\**\*.resources.dll" />
+      <ExampleDependentPluginAsset Include="$(ExampleDependentPluginOutput)\wwwroot\**\*" />
+    </ItemGroup>
+    <MakeDir Directories="$(ExampleDependentPluginTarget)\wwwroot" />
+    <Copy SourceFiles="@(ExampleDependentPluginBinary)" DestinationFolder="$(ExampleDependentPluginTarget)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ExampleDependentPluginResource)"
+          DestinationFolder="$(ExampleDependentPluginTarget)\%(RecursiveDir)"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ExampleDependentPluginAsset)"
+          DestinationFolder="$(ExampleDependentPluginTarget)\wwwroot\%(RecursiveDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="StageExampleWebPlugin"
+          AfterTargets="Build"
+          Condition="'$(Configuration)' == 'Debug' And '$(TargetFramework)' != '' And '$(TargetFramework)' != 'net10.0' And Exists('$(MSBuildProjectDirectory)\..\..\tests\Fixtures\Plugins\Quantum.ExampleWebPlugin\wwwroot\dist\plugin.js')">
+    <PropertyGroup>
+      <ExampleWebPluginRoot>$(MSBuildProjectDirectory)\..\..\tests\Fixtures\Plugins\Quantum.ExampleWebPlugin</ExampleWebPluginRoot>
+      <ExampleWebPluginTarget>$(TargetDir)Modules\quantum.plugin.example-web</ExampleWebPluginTarget>
+    </PropertyGroup>
+    <ItemGroup>
+      <ExampleWebPluginAsset Include="$(ExampleWebPluginRoot)\wwwroot\**\*" />
+    </ItemGroup>
+    <MakeDir Directories="$(ExampleWebPluginTarget)\wwwroot" />
+    <Copy SourceFiles="$(ExampleWebPluginRoot)\plugin.json"
+          DestinationFolder="$(ExampleWebPluginTarget)"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ExampleWebPluginAsset)"
+          DestinationFolder="$(ExampleWebPluginTarget)\wwwroot\%(RecursiveDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>

@@ -1,0 +1,40 @@
+@namespace Quantum.ExampleDependentPlugin.Pages
+@using Quantum.ExampleDependentPlugin
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.Extensions.Localization
+@using Quantum.ExampleDependentPlugin.Localization
+@inject IStringLocalizer<PluginStrings> L
+
+<PageTitle>@L["CompanionPlugin"] · Quantum</PageTitle>
+
+<section class="dependent-plugin">
+    <p class="dependent-kicker">@L["CompanionEyebrow"]</p>
+    <h1>@L["CompanionPlugin"]</h1>
+    <p class="dependent-lead">@L["CompanionLead"]</p>
+
+    <div class="dependency-flow" aria-label="@L["PluginStatus"]">
+        <article>
+            <span>@L["RequiredCapability"]</span>
+            <strong>@DependentPlugin.GreetingCapabilityName</strong>
+        </article>
+        <div class="dependency-arrow" aria-hidden="true">→</div>
+        <article>
+            <span>@L["CompanionPlugin"]</span>
+            <strong>@L["StartedAtArg", State.StartedAt?.ToString("T") ?? L["Waiting"].Value]</strong>
+        </article>
+    </div>
+
+    <article class="dynamic-call">
+        <span>@L["LatestGreeting"]</span>
+        <strong>@(State.Greeting ?? L["WaitingForGreeting"].Value)</strong>
+    </article>
+</section>
+
+@code {
+    private readonly DependentPluginState State;
+
+    public Index(DependentPluginState state)
+    {
+        State = state;
+    }
+}

@@ -1,0 +1,63 @@
+# .NET build output
+**/bin/
+**/obj/
+/artifacts/
+/publish/
+/.tools/
+/Releases/
+*.nupkg
+*.snupkg
+
+# Test and coverage output
+**/TestResults/
+*.coverage
+*.coveragexml
+
+# IDE state
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# MAUI and Windows packaging output
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
+
+# Generated documentation
+/api/
+/_site/
+
+# Local application data
+/data/
+*.zip
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+**/appsettings.Local.json
+*.pfx
+*.p12
+*.publishsettings
+*.pubxml.user
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# Front-end dependencies
+node_modules/
+/tests/Fixtures/Plugins/Quantum.ExampleWebPlugin/wwwroot/dist/
+
+# Operating-system files
+.DS_Store
+Thumbs.db

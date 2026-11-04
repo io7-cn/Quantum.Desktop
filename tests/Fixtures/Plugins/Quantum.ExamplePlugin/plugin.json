@@ -1,0 +1,31 @@
+{
+  "id": "quantum.plugin.example",
+  "version": "0.1.0",
+  "entryAssembly": "Quantum.ExamplePlugin.dll",
+  "dependencies": [],
+  "integrations": [],
+  "capabilities": {
+    "provides": ["example.greet", "example.handshake", "example.suggestions"]
+  },
+  "ui": {
+    "routes": [
+      {
+        "path": "/plugins/example",
+        "component": "Quantum.ExamplePlugin.Pages.Index",
+        "title": "示例插件",
+        "titles": { "en-US": "Example plugin" },
+        "icon": "✦",
+        "order": 100,
+        "showInNavigation": true
+      }
+    ]
+  },
+  "web": {
+    "head": [
+      "<link rel=\"stylesheet\" href=\"_content/quantum.plugin.example/site.css\">"
+    ],
+    "postBlazor": [
+      "<script src=\"_content/quantum.plugin.example/main.js\"></script>"
+    ]
+  }
+}
