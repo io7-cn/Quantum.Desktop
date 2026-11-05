@@ -62,6 +62,9 @@ else {
         '--signEntitlements', 'src/Quantum/Platforms/MacCatalyst/DirectDistribution.entitlements',
         '--notaryProfile', 'quantum-notary', '--keychain', $env:QUANTUM_SIGNING_KEYCHAIN)
 }
+$licenseDirectory = if ($Channel -eq 'win-x64') { $publish } else { Join-Path $bundle 'Contents/Resources' }
+Copy-Item -LiteralPath @('LICENSE', 'NOTICE') -Destination $licenseDirectory
+
 try {
     dotnet vpk @packageArgs --yes
 }

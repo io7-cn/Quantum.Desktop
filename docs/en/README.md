@@ -22,7 +22,7 @@ The plugins under `tests/Fixtures/Plugins/` are fixed host test fixtures derived
 
 Logs go to `Logs/quantum-YYYYMMDD-HHmmss-PID-SEGMENT.log` under application data, with a 20 MiB threshold per segment. The file writer rolls before a new entry would exceed the threshold and keeps a single oversized entry intact. Pass `--console` to also see logs in the terminal. With `dotnet run`, append `-- --console` to the launch command.
 
-See [Login sessions](login-sessions.md), [Architecture](architecture.md), [Desktop releases](desktop-releases.md), the [.NET plugin guide](plugin-development.md), the [TypeScript plugin guide](web-plugin-development.md) and [Contributing](CONTRIBUTING.md). Licensed under [MIT](../../LICENSE).
+See [Login sessions](login-sessions.md), [Architecture](architecture.md), [Desktop releases](desktop-releases.md), the [.NET plugin guide](plugin-development.md), the [TypeScript plugin guide](web-plugin-development.md) and [Contributing](CONTRIBUTING.md). Licensed under [Apache License 2.0](../../LICENSE).
 
 ## Launch commands
 
@@ -37,3 +37,5 @@ Windows
 ```powershell
 dotnet run --project src/Quantum/Quantum.csproj --framework net10.0-windows10.0.19041.0
 ```
+
+Attribution and third-party license notices are provided in [NOTICE](../../NOTICE).
