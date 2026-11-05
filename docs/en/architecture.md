@@ -13,6 +13,10 @@ The host groups source by technical responsibility. `Shell` contains startup and
 3. The host stages each plugin in a shadow copy. .NET plugins get an unloadable assembly load context (ALC) and a private dependency injection (DI) container. It runs generated NOF assembly initializers, then `IQuantumPlugin.ConfigureServices`, and discovers generated `[TransportOverQuantum]` server endpoints. The Web runtime validates the single-file JavaScript module and prepares an iframe.
 4. The host applies pending migrations and starts static plugin entry points in dependency order. It publishes the new catalog atomically after successful startup. MAUI supplies the catalog to routes, menus and asset providers. Web modules activate in an iframe with an opaque origin after the catalog is published.
 
+## Shell navigation
+
+The compact sidebar keeps plugin routes above the marketplace and settings links. The bottom settings link reuses `wwwroot/assets/quantum-mark.svg` on a purple-tinted background, retaining the 80px sidebar and 48px navigation target. It still opens `/settings` and uses the localized Settings tooltip and accessible name. Hover, active-route and keyboard-focus states are defined in `Components/Layout/MainLayout.razor.css`; the logo is decorative to assistive technology.
+
 ## Data and calls
 
 Both runtimes ship append-only numbered SQLite migrations in `database.migrations`. The host verifies the applied SHA-256 history in `__quantum_plugin_migrations` and applies each plugin's pending scripts in a transaction before startup. Scripts leave transaction control to the host. A committed migration survives runtime rollback, so use backward-compatible database changes.
