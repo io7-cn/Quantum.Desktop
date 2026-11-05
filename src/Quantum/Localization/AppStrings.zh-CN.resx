@@ -323,4 +323,10 @@
   <data name="PluginRpcInstallInvalidPayload" xml:space="preserve"><value>请提供有效的市场插件 ID，或 ZIP 文件名及其 Base64 内容。</value></data>
   <data name="PluginRpcInstallFailed" xml:space="preserve"><value>无法安装插件。请查看 Quantum 日志了解详情。</value></data>
   <data name="PluginRpcInstallNotFound" xml:space="preserve"><value>找不到请求的安装任务。</value></data>
+  <data name="GeneralSettings" xml:space="preserve"><value>通用</value></data>
+  <data name="PluginManagement" xml:space="preserve"><value>插件</value></data>
+  <data name="SettingsDescription" xml:space="preserve"><value>让工作空间更合你意</value></data>
+  <data name="MarketplaceConnecting" xml:space="preserve"><value>正在连接</value></data>
+  <data name="MarketplaceConnected" xml:space="preserve"><value>已连接</value></data>
+  <data name="MarketplaceUnavailable" xml:space="preserve"><value>离线</value></data>
 </root>

@@ -31,7 +31,7 @@
     {
         <div class="empty-card">
             <p>@L["QuantumAccountHint"]</p>
-            <a class="primary-button" href="/settings#account">@L["SignInToQuantum"]</a>
+            <a class="primary-button" href="/settings?section=account">@L["SignInToQuantum"]</a>
         </div>
     }
     else
@@ -39,7 +39,7 @@
         <div class="session-bar">
             <div class="account-avatar">@MarketplaceSession.User!.Username[0].ToString().ToUpperInvariant()</div>
             <div><strong>@MarketplaceSession.User.Username</strong><span>@MarketplaceSession.User.Email</span></div>
-            <a class="secondary-button" href="/settings#account">@L["AccountSettings"]</a>
+            <a class="secondary-button" href="/settings?section=account">@L["AccountSettings"]</a>
         </div>
 
         <div class="release-workspace">

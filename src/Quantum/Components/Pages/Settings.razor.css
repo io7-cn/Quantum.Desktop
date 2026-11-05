@@ -1,0 +1,333 @@
+.settings-page {
+  display: grid;
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.settings-page ::deep .settings-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: none;
+  margin: 0 0 4px;
+}
+
+.settings-logo {
+  width: 48px;
+  height: 48px;
+  padding: 8px;
+  border: 1px solid #e2e0e7;
+  border-radius: 12px;
+  background: #f8f6fb;
+}
+
+.settings-page ::deep .settings-header h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+
+.settings-header div p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-tabs button {
+  margin-bottom: -1px;
+  padding: 10px 2px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.settings-tabs button.active {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+}
+
+.settings-tabs button:hover {
+  color: var(--accent);
+}
+
+.settings-page ::deep .section-block {
+  margin: 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+}
+
+.settings-page ::deep .section-heading {
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.settings-page ::deep .section-heading:last-child {
+  margin-bottom: 0;
+}
+
+.settings-page ::deep .section-heading h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: normal;
+}
+
+.settings-page ::deep .section-block p {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.settings-page ::deep .section-heading p {
+  margin: 4px 0 0;
+}
+
+.settings-page ::deep .section-block > p:last-child {
+  margin-bottom: 0;
+}
+
+.settings-page ::deep :is(button, input, select) {
+  font: inherit;
+}
+
+.settings-page ::deep :is(.secondary-button, .primary-button, .plugin-actions button, .danger-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  margin: 0;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: white;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.settings-page ::deep :is(.primary-button, .disable-plugin-dialog .primary-button) {
+  border-color: var(--accent);
+  color: white;
+  background: var(--accent);
+}
+
+.settings-page ::deep .danger-button {
+  border-color: #aa425b;
+  color: white;
+  background: #aa425b;
+}
+
+.settings-page ::deep .plugin-actions .danger {
+  color: #aa425b;
+  background: white;
+}
+
+.settings-page button:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.settings-page ::deep .primary-button:hover:not(:disabled) {
+  background: #5e4b85;
+}
+
+.settings-page ::deep .danger-button:hover:not(:disabled) {
+  background: #90384c;
+}
+
+.settings-page button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.settings-page ::deep :is(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.settings-page ::deep .language-picker {
+  color: var(--muted);
+}
+
+.settings-page ::deep .language-picker select {
+  height: 36px;
+  padding: 0 28px 0 10px;
+  border-color: var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.settings-page ::deep :is(.plugin-list, .empty-card, .failure-row) {
+  position: static;
+  border: 0;
+  border-radius: 0;
+  background: white;
+  box-shadow: none;
+}
+
+.settings-page ::deep :is(.plugin-row, .empty-card, .failure-row) {
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.settings-page ::deep .plugin-row:last-child {
+  padding-bottom: 0;
+}
+
+.settings-page ::deep .plugin-row + .plugin-row {
+  border-top-color: var(--line);
+}
+
+.settings-page ::deep :is(.plugin-avatar, .empty-symbol) {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--accent);
+  background: var(--hover);
+  font-weight: 500;
+}
+
+.settings-page ::deep .plugin-meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.settings-page ::deep .plugin-meta strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.settings-page ::deep :is(.healthy-pill, .disabled-pill) {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.settings-page ::deep .healthy-pill {
+  color: #446e66;
+  background: #edf5f2;
+}
+
+.settings-page ::deep .empty-card strong {
+  font-weight: 500;
+}
+
+.settings-page ::deep .developer-page {
+  --ink: #363249;
+  --muted: #706883;
+  --line: #e2e0e7;
+  --accent: #6d5a96;
+  gap: 0;
+}
+
+.settings-page ::deep .auth-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.settings-page ::deep .auth-card h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.settings-page ::deep .auth-card input {
+  height: 36px;
+  padding: 8px 10px;
+  border-color: var(--line);
+  border-radius: 8px;
+  background: white;
+  font-size: 13px;
+}
+
+.settings-page ::deep .auth-card label span {
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.settings-page ::deep .web-note {
+  text-align: start;
+}
+
+.settings-page ::deep .session-bar {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.settings-page ::deep .session-bar > div {
+  display: grid;
+  gap: 4px;
+}
+
+.settings-page ::deep .failure-row {
+  display: block;
+  margin: 0;
+  color: #aa425b;
+}
+
+.settings-page ::deep .failure-row + .failure-row {
+  border-top: 1px solid var(--line);
+}
+
+.settings-page ::deep .failure-row summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.settings-page ::deep .failure-row strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.settings-page ::deep .failure-row p {
+  max-height: 180px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+
+.settings-page ::deep .unload-dialog {
+  border-radius: 12px;
+}
+
+.settings-page ::deep .eyebrow {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+@media (max-width: 980px) {
+  .settings-page ::deep .plugin-row {
+    flex-wrap: wrap;
+  }
+
+  .settings-page ::deep .plugin-actions {
+    justify-content: flex-end;
+    width: 100%;
+  }
+}

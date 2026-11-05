@@ -11,7 +11,7 @@
     <Nullable>enable</Nullable>
     <ApplicationTitle>Quantum</ApplicationTitle>
     <ApplicationId>io.quantum.desktop</ApplicationId>
-    <ApplicationDisplayVersion>0.1.20</ApplicationDisplayVersion>
+    <ApplicationDisplayVersion>0.1.21</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
     <Version>$(ApplicationDisplayVersion)</Version>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
@@ -35,7 +35,13 @@
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net10.0'">
     <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#6D5DFB" />
-    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#171528" BaseSize="128,128" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#FFFFFF" BaseSize="128,128" />
+  </ItemGroup>
+
+  <!-- Razor styles belong to Blazor CSS isolation, not MAUI's native CSS loader. -->
+  <ItemGroup Condition="'$(UseMaui)' == 'true'">
+    <MauiCss Remove="Components\**\*.razor.css" />
+    <Content Include="Components\**\*.razor.css" />
   </ItemGroup>
 
   <ItemGroup>

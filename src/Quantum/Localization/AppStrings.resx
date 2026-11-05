@@ -323,4 +323,10 @@
   <data name="PluginRpcInstallInvalidPayload" xml:space="preserve"><value>Provide a valid Marketplace plugin ID or a ZIP filename and its base64 contents.</value></data>
   <data name="PluginRpcInstallFailed" xml:space="preserve"><value>The plugin could not be installed. See the Quantum logs for details.</value></data>
   <data name="PluginRpcInstallNotFound" xml:space="preserve"><value>The requested installation was not found.</value></data>
+  <data name="GeneralSettings" xml:space="preserve"><value>General</value></data>
+  <data name="PluginManagement" xml:space="preserve"><value>Plugins</value></data>
+  <data name="SettingsDescription" xml:space="preserve"><value>Make yourself at home</value></data>
+  <data name="MarketplaceConnecting" xml:space="preserve"><value>Connecting</value></data>
+  <data name="MarketplaceConnected" xml:space="preserve"><value>Connected</value></data>
+  <data name="MarketplaceUnavailable" xml:space="preserve"><value>Offline</value></data>
 </root>
