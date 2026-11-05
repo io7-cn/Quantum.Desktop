@@ -177,7 +177,7 @@
   <data name="UpdatePlugin" xml:space="preserve"><value>Update plugin</value></data>
   <data name="PublishedVersions" xml:space="preserve"><value>Published versions</value></data>
   <data name="Downloads" xml:space="preserve"><value>downloads</value></data>
-  <data name="SupportsQuantumArg" xml:space="preserve"><value>Supports Quantum {0}</value></data>
+  <data name="SupportsSdkArg" xml:space="preserve"><value>Supports SDK {0}</value></data>
   <data name="ReadyToInstallArg" xml:space="preserve"><value>Ready to install {0}</value></data>
   <data name="CannotInstallArg" xml:space="preserve"><value>Cannot install {0}</value></data>
   <data name="LocalPreflightFailed" xml:space="preserve"><value>Local preflight failed</value></data>
@@ -230,7 +230,7 @@
   <data name="ReleaseManagement" xml:space="preserve"><value>Release management</value></data>
   <data name="ArgReleases" xml:space="preserve"><value>{0} releases</value></data>
   <data name="Version" xml:space="preserve"><value>Version</value></data>
-  <data name="QuantumVersionRange" xml:space="preserve"><value>Quantum version range</value></data>
+  <data name="SdkVersionRange" xml:space="preserve"><value>SDK version range</value></data>
   <data name="ReleaseNotes" xml:space="preserve"><value>Release notes</value></data>
   <data name="PluginZIP" xml:space="preserve"><value>Plugin ZIP</value></data>
   <data name="ChooseAFile" xml:space="preserve"><value>Choose a file</value></data>
@@ -297,7 +297,7 @@
   <data name="AppUpdateApplying" xml:space="preserve"><value>Installing the update and restarting Quantum…</value></data>
   <data name="AppUpdateFailed" xml:space="preserve"><value>The update did not complete. Check your connection and retry. Your installed version is still available.</value></data>
   <data name="InstallingPlugin" xml:space="preserve"><value>Installing…</value></data>
-  <data name="MarketplacePluginIncompatible" xml:space="preserve"><value>{0} is not compatible with Quantum {1}.</value></data>
+  <data name="MarketplacePluginIncompatible" xml:space="preserve"><value>{0} is not compatible with plugin SDK {1}.</value></data>
   <data name="MarketplacePackageIdentityMismatch" xml:space="preserve"><value>The package does not match the selected plugin and version. Nothing was installed.</value></data>
   <data name="MobileAccess" xml:space="preserve"><value>Mobile access</value></data>
   <data name="MobileAccessDescription" xml:space="preserve"><value>All mobile plugin pages are available automatically to devices signed in to the same Quantum account. Plugins execute on this computer.</value></data>
@@ -329,4 +329,5 @@
   <data name="MarketplaceConnecting" xml:space="preserve"><value>Connecting</value></data>
   <data name="MarketplaceConnected" xml:space="preserve"><value>Connected</value></data>
   <data name="MarketplaceUnavailable" xml:space="preserve"><value>Offline</value></data>
+  <data name="SdkCompatibilityUndeclared" xml:space="preserve"><value>Not declared</value></data>
 </root>

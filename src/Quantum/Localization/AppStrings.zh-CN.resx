@@ -177,7 +177,7 @@
   <data name="UpdatePlugin" xml:space="preserve"><value>更新插件</value></data>
   <data name="PublishedVersions" xml:space="preserve"><value>已发布版本</value></data>
   <data name="Downloads" xml:space="preserve"><value>次下载</value></data>
-  <data name="SupportsQuantumArg" xml:space="preserve"><value>支持 Quantum {0}</value></data>
+  <data name="SupportsSdkArg" xml:space="preserve"><value>支持 SDK {0}</value></data>
   <data name="ReadyToInstallArg" xml:space="preserve"><value>准备安装 {0}</value></data>
   <data name="CannotInstallArg" xml:space="preserve"><value>无法安装 {0}</value></data>
   <data name="LocalPreflightFailed" xml:space="preserve"><value>本机预检未通过</value></data>
@@ -230,7 +230,7 @@
   <data name="ReleaseManagement" xml:space="preserve"><value>版本管理</value></data>
   <data name="ArgReleases" xml:space="preserve"><value>{0} 个版本</value></data>
   <data name="Version" xml:space="preserve"><value>版本</value></data>
-  <data name="QuantumVersionRange" xml:space="preserve"><value>Quantum 版本范围</value></data>
+  <data name="SdkVersionRange" xml:space="preserve"><value>SDK 版本范围</value></data>
   <data name="ReleaseNotes" xml:space="preserve"><value>发布说明</value></data>
   <data name="PluginZIP" xml:space="preserve"><value>插件 ZIP</value></data>
   <data name="ChooseAFile" xml:space="preserve"><value>选择文件</value></data>
@@ -297,7 +297,7 @@
   <data name="AppUpdateApplying" xml:space="preserve"><value>正在安装更新并重启 Quantum…</value></data>
   <data name="AppUpdateFailed" xml:space="preserve"><value>更新未完成，请检查网络后重试。当前已安装的版本仍可继续使用。</value></data>
   <data name="InstallingPlugin" xml:space="preserve"><value>正在安装…</value></data>
-  <data name="MarketplacePluginIncompatible" xml:space="preserve"><value>{0} 与 Quantum {1} 不兼容。</value></data>
+  <data name="MarketplacePluginIncompatible" xml:space="preserve"><value>{0} 与插件 SDK {1} 不兼容。</value></data>
   <data name="MarketplacePackageIdentityMismatch" xml:space="preserve"><value>安装包与所选插件或版本不一致，未执行安装。</value></data>
   <data name="MobileAccess" xml:space="preserve"><value>移动访问</value></data>
   <data name="MobileAccessDescription" xml:space="preserve"><value>登录后，全部插件的移动页面会自动提供给同一 Quantum 账号的设备，插件与业务仍在此电脑执行。</value></data>
@@ -329,4 +329,5 @@
   <data name="MarketplaceConnecting" xml:space="preserve"><value>正在连接</value></data>
   <data name="MarketplaceConnected" xml:space="preserve"><value>已连接</value></data>
   <data name="MarketplaceUnavailable" xml:space="preserve"><value>离线</value></data>
+  <data name="SdkCompatibilityUndeclared" xml:space="preserve"><value>未声明</value></data>
 </root>

@@ -3,7 +3,7 @@ using Quantum.Mobile.Internal;
 
 namespace Quantum.Marketplace;
 
-public sealed record QuantumMarketplaceOptions(Uri BaseAddress, string QuantumVersion)
+public sealed record QuantumMarketplaceOptions(Uri BaseAddress, string SdkVersion)
 {
     public static QuantumMarketplaceOptions FromEnvironment()
     {
@@ -16,12 +16,12 @@ public sealed record QuantumMarketplaceOptions(Uri BaseAddress, string QuantumVe
         {
             baseAddress = new Uri(PlatformAddress.DefaultUrl);
         }
-        var configuredVersion = Environment.GetEnvironmentVariable("QUANTUM_VERSION");
-        var quantumVersion = string.IsNullOrWhiteSpace(configuredVersion)
-            ? typeof(QuantumMarketplaceOptions).Assembly
+        var configuredVersion = Environment.GetEnvironmentVariable("QUANTUM_SDK_VERSION");
+        var sdkVersion = string.IsNullOrWhiteSpace(configuredVersion)
+            ? typeof(IQuantumPlugin).Assembly
                 .GetCustomAttribute<AssemblyInformationalVersionAttribute>()!
                 .InformationalVersion.Split('+')[0]
             : configuredVersion.Trim();
-        return new QuantumMarketplaceOptions(baseAddress, quantumVersion);
+        return new QuantumMarketplaceOptions(baseAddress, sdkVersion);
     }
 }
