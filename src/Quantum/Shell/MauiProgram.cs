@@ -145,9 +145,11 @@ public static class MauiProgram
         var databasePath = Path.Combine(FileSystem.AppDataDirectory, "quantum.db");
         var preferredPath = !string.IsNullOrWhiteSpace(configuredPath)
             ? Path.GetFullPath(configuredPath)
-            : Directory.Exists(bundledPath)
-                ? bundledPath
-                : applicationDataPath;
+#if DEBUG
+            : Directory.Exists(bundledPath) ? bundledPath : applicationDataPath;
+#else
+            : applicationDataPath;
+#endif
 
         try
         {

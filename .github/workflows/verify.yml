@@ -41,5 +41,6 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
+      - run: powershell -NoProfile -ExecutionPolicy Bypass -File .ci/tests/Test-DesktopUninstall.ps1
       - run: dotnet workload install maui-windows --skip-manifest-update
       - run: dotnet build src/Quantum/Quantum.csproj -c Debug -f net10.0-windows10.0.19041.0

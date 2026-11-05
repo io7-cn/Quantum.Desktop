@@ -455,6 +455,8 @@ Modules/
 ```
 
 `disabled` 是宿主保留的插件 id，任何 .NET 或 Web 插件都不能使用该名称。宿主将
+正式构建默认使用应用数据中的 `Modules`，Windows 路径为 `%LOCALAPPDATA%\io7-cn\io.quantum.desktop\Data\Modules`；Debug 构建可使用随构建暂存的测试插件。`QUANTUM_MODULES_PATH` 指定的外部目录由用户管理，卸载应用时始终保留。
+
 `Modules/disabled` 专门用于保存已禁用插件，普通扫描不会把它当成插件目录。
 
 插件程序集依赖优先从自身影子目录解析；`System.*`、`Microsoft.*`、`NOF.*` 与 Quantum 插件 ABI 始终与宿主共享。

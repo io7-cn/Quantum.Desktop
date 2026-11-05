@@ -9,7 +9,7 @@
   <mp:PhoneIdentity PhoneProductId="3d832e07-356d-442f-9d45-c89343285d91" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Quantum</DisplayName>
-    <PublisherDisplayName>Quantum</PublisherDisplayName>
+    <PublisherDisplayName>io7-cn</PublisherDisplayName>
     <Logo>$placeholder$.png</Logo>
   </Properties>
   <Dependencies>

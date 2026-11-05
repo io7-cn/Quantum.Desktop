@@ -15,6 +15,10 @@ The host groups source by technical responsibility. `Shell` contains startup and
 
 ## Data and calls
 
+Decision: [0001 — Separate Windows user data from installation](decisions/0001-windows-data.md).
+
+Windows storage migration runs before MAUI initializes preferences or secure storage. The Windows manifest's publisher component `io7-cn` places the MAUI data root outside Velopack's default `Quantum` installation root. `Storage/DesktopDataMigration` stages a complete copy, snapshots SQLite through its backup API and atomically publishes it with a completion marker; failures stop startup. Release plugin installs use application data. The Windows uninstall wrapper collects a default-preserve choice outside timed Velopack hooks and clears only fixed app-owned roots after a successful uninstall. See [installation and recovery behavior](desktop-releases.md#local-data-and-uninstalling-on-windows).
+
 Both runtimes ship append-only numbered SQLite migrations in `database.migrations`. The host verifies the applied SHA-256 history in `__quantum_plugin_migrations` and applies each plugin's pending scripts in a transaction before startup. Scripts leave transaction control to the host. A committed migration survives runtime rollback, so use backward-compatible database changes.
 
 Web frames call the host through origin-checked `postMessage` and a `DotNetObjectReference` adapter. Remote procedure calls (RPCs) exchange JSON and NOF results. The host gives each invocation a fresh target DI scope and disposes it after serialization. Each RPC method exposes one case-sensitive capability name. The local catalog exposes capability schemas, dispatch policies and active providers. Request uses the declared All or Ordered policy. The report lists each contacted provider and is empty when no provider is available. The caller's invoker is tied to its runtime generation. The host drains pending calls and clears cached routes and JSON metadata during unload.
