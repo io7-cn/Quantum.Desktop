@@ -167,7 +167,7 @@
                 {
                     <article>
                         <div><strong>v@(release.Version)</strong><span>@FormatSize(release.PackageSizeBytes) · @release.DownloadCount @L["Downloads"]</span></div>
-                        <p>@L["SupportsQuantumArg", release.QuantumVersionSupport]</p>
+                        <p>@L["SupportsSdkArg", release.SdkVersionSupport ?? L["SdkCompatibilityUndeclared"].Value]</p>
                         @if (!string.IsNullOrWhiteSpace(release.ReleaseNotes))
                         {
                             <p>@release.ReleaseNotes</p>
@@ -240,7 +240,7 @@
                 }
 
                 var compatibility = await MarketplaceClient.CheckCompatibilityAsync(
-                    plugin.PluginId, MarketplaceOptions.QuantumVersion, _lifetime.Token);
+                    plugin.PluginId, MarketplaceOptions.SdkVersion, _lifetime.Token);
                 if (compatibility.IsCompatible && compatibility.MatchedReleaseVersion is { } version
                     && IsNewerVersion(version, installedVersion))
                 {
