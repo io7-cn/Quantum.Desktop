@@ -11,6 +11,28 @@ namespace Quantum.Tests;
 public sealed class QuantumMarketplaceClientTests
 {
     [Fact]
+    public async Task CheckCompatibilityAsync_SendsSdkVersionAndReadsSdkRange()
+    {
+        string? requestBody = null;
+        var handler = new StubHttpMessageHandler(async request =>
+        {
+            requestBody = await request.Content!.ReadAsStringAsync();
+            return JsonResponse("""
+                {"jsonrpc":"2.0","id":"response","result":{"isSuccess":true,"value":{"isCompatible":true,"matchedReleaseVersion":"1.2.3","sdkVersionSupport":">=0.3.0-rc.2 <0.4.0","quantumVersionSupport":""}}}
+                """);
+        });
+
+        var result = await CreateClient(handler).CheckCompatibilityAsync("quantum.plugin.example", " 0.3.0-rc.2 ");
+
+        Assert.True(result.IsCompatible);
+        Assert.Equal(">=0.3.0-rc.2 <0.4.0", result.SdkVersionSupport);
+        using var input = JsonDocument.Parse(requestBody!);
+        var parameters = input.RootElement.GetProperty("params");
+        Assert.Equal("0.3.0-rc.2", parameters.GetProperty("sdkVersion").GetString());
+        Assert.False(parameters.TryGetProperty("quantumVersion", out _));
+    }
+
+    [Fact]
     public async Task ListPluginsAsync_UsesJsonRpcEnvelopeAndReadsNofResult()
     {
         string? requestBody = null;

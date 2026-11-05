@@ -18,6 +18,7 @@ public sealed class MarketplacePluginInstallerTests
         var (installer, market, runtime) = Create();
         var result = await installer.InstallAsync(Plugin);
         Assert.True(result.Succeeded);
+        Assert.Equal("0.3.0-rc.2", market.RequestedSdkVersion);
         Assert.Equal(1, market.Downloads);
         Assert.Equal(new[] { "PrepareInstallAsync", "InstallAsync", "CancelInstallAsync" }, runtime.Calls);
         Assert.Equal(new byte[] { 1, 2, 3 }, runtime.PreparedBytes);
@@ -100,7 +101,7 @@ public sealed class MarketplacePluginInstallerTests
         services.AddLocalization();
         services.AddSingleton(client);
         services.AddSingleton(runtime);
-        services.AddSingleton(new QuantumMarketplaceOptions(new Uri("https://quantum.io-vii.com"), "0.1.0"));
+        services.AddSingleton(new QuantumMarketplaceOptions(new Uri("https://quantum.io-vii.com"), "0.3.0-rc.2"));
         services.AddSingleton<MarketplacePluginInstaller>();
         services.AddSingleton(catalog);
         await using var provider = services.BuildServiceProvider();
@@ -113,6 +114,10 @@ public sealed class MarketplacePluginInstallerTests
         var text = System.Net.WebUtility.HtmlDecode(html);
         Assert.Equal(installed is null, text.Contains("Download and install", StringComparison.Ordinal) || text.Contains("下载并安装", StringComparison.Ordinal));
         Assert.Equal(expectUpdate, text.Contains("Update plugin", StringComparison.Ordinal) || text.Contains("更新插件", StringComparison.Ordinal));
+        if (expectUpdate)
+        {
+            Assert.Equal("0.3.0-rc.2", market.RequestedSdkVersion);
+        }
         Assert.DoesNotContain("Check for update", text);
         Assert.DoesNotContain("检查更新", text);
         if (installed is not null)
@@ -123,7 +128,7 @@ public sealed class MarketplacePluginInstallerTests
     {
         var client = DispatchProxy.Create<IQuantumMarketplaceClient, MarketStub>();
         var runtime = DispatchProxy.Create<IPluginRuntimeManager, RuntimeStub>();
-        return (new(client, runtime, new(new Uri("https://quantum.io-vii.com"), "0.1.0")), (MarketStub)(object)client, (RuntimeStub)(object)runtime);
+        return (new(client, runtime, new(new Uri("https://quantum.io-vii.com"), "0.3.0-rc.2")), (MarketStub)(object)client, (RuntimeStub)(object)runtime);
     }
 
     public class MarketStub : DispatchProxy
@@ -131,11 +136,16 @@ public sealed class MarketplacePluginInstallerTests
         public MarketplacePlugin ListedPlugin = Plugin;
         public MarketplaceCompatibility Compatibility = new(true, "1.1.1", ">=0.1.0");
         public int Downloads;
+        public string? RequestedSdkVersion;
         public MarketplaceDownload Package = new("calendar.zip", "application/zip", [1, 2, 3], 3, "hash");
         protected override object? Invoke(MethodInfo? method, object?[]? args)
         {
             if (method!.Name == "get_BaseAddress") return new Uri("https://quantum.io-vii.com");
-            if (method!.Name == "CheckCompatibilityAsync") return Task.FromResult(Compatibility);
+            if (method!.Name == "CheckCompatibilityAsync")
+            {
+                RequestedSdkVersion = (string)args![1]!;
+                return Task.FromResult(Compatibility);
+            }
             if (method.Name == "DownloadAsync") { Downloads++; return Task.FromResult(Package); }
             if (method.Name == "GetPluginAsync") return Task.FromResult(new MarketplacePluginDetails(ListedPlugin, []));
             if (method.Name == "ListPluginsAsync") return Task.FromResult<IReadOnlyList<MarketplacePlugin>>([ListedPlugin]);

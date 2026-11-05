@@ -22,7 +22,7 @@ public interface IQuantumMarketplaceClient
 
     Task<MarketplaceCompatibility> CheckCompatibilityAsync(
         string pluginId,
-        string quantumVersion,
+        string sdkVersion,
         CancellationToken cancellationToken = default);
 
     Task<MarketplaceDownload> DownloadAsync(

@@ -43,12 +43,14 @@ public sealed record MarketplaceRelease(
     DateTime UploadedAtUtc,
     long DownloadCount,
     string? ReleaseId = null,
-    string? PluginId = null);
+    string? PluginId = null,
+    string? SdkVersionSupport = null);
 
 public sealed record MarketplaceCompatibility(
     bool IsCompatible,
     string? MatchedReleaseVersion,
-    string? QuantumVersionSupport);
+    string? QuantumVersionSupport,
+    string? SdkVersionSupport = null);
 
 public sealed record MarketplaceDownload(
     string FileName,

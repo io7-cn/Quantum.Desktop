@@ -10,13 +10,17 @@ public sealed class MarketplacePluginInstaller(
 {
     public async Task<PluginOperationResult> InstallAsync(MarketplacePlugin plugin, CancellationToken cancellationToken = default)
     {
-        var compatibility = await marketplace.CheckCompatibilityAsync(plugin.PluginId, options.QuantumVersion, cancellationToken);
+        var compatibility = await marketplace.CheckCompatibilityAsync(plugin.PluginId, options.SdkVersion, cancellationToken);
         if (!compatibility.IsCompatible || compatibility.MatchedReleaseVersion is not { } version)
-            return PluginOperationResult.Failure(AppText.Get("MarketplacePluginIncompatible", plugin.Name, options.QuantumVersion));
+        {
+            return PluginOperationResult.Failure(AppText.Get("MarketplacePluginIncompatible", plugin.Name, options.SdkVersion));
+        }
 
         var download = await marketplace.DownloadAsync(plugin.PluginId, version, cancellationToken);
         if (download.Archive.LongLength > PluginPackageLimits.MaximumArchiveBytes)
+        {
             throw new InvalidDataException(AppText.Get("TheDownloadedPackageExceedsTheLocalInstallationSize"));
+        }
 
         await using var stream = new MemoryStream(download.Archive, writable: false);
         var preview = await runtime.PrepareInstallAsync(stream, download.FileName, cancellationToken);
@@ -28,13 +32,18 @@ public sealed class MarketplacePluginInstaller(
                 return PluginOperationResult.Failure(string.IsNullOrWhiteSpace(reason) ? AppText.Get("LocalPreflightFailed") : reason);
             }
             if (preview.Plugins.Count != 1 || preview.Plugins[0].PluginId != plugin.PluginId || preview.Plugins[0].PackageVersion != version)
+            {
                 return PluginOperationResult.Failure(AppText.Get("MarketplacePackageIdentityMismatch"));
+            }
+
             return await runtime.InstallAsync(previewId, cancellationToken);
         }
         finally
         {
             if (preview.PreviewId is { } previewId)
+            {
                 await runtime.CancelInstallAsync(previewId, CancellationToken.None);
+            }
         }
     }
 }

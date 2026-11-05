@@ -64,13 +64,13 @@ public sealed class QuantumMarketplaceClient : IQuantumMarketplaceClient
 
     public Task<MarketplaceCompatibility> CheckCompatibilityAsync(
         string pluginId,
-        string quantumVersion,
+        string sdkVersion,
         CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(quantumVersion);
+        ArgumentException.ThrowIfNullOrWhiteSpace(sdkVersion);
         return InvokeAsync<MarketplaceCompatibility>(
             "CheckCompatibility",
-            new { pluginId = RequirePluginId(pluginId), quantumVersion = quantumVersion.Trim() },
+            new { pluginId = RequirePluginId(pluginId), sdkVersion = sdkVersion.Trim() },
             AuthenticationMode.None,
             cancellationToken);
     }
@@ -145,7 +145,11 @@ public sealed class QuantumMarketplaceClient : IQuantumMarketplaceClient
         {
             return await _session.Authentication.ExecuteAsync((token, ct) => InvokeCoreAsync<T>(method, parameters, token, ct), cancellationToken);
         }
-        if (authenticationMode == AuthenticationMode.Required) throw new PlatformAuthenticationException();
+        if (authenticationMode == AuthenticationMode.Required)
+        {
+            throw new PlatformAuthenticationException();
+        }
+
         return await InvokeCoreAsync<T>(method, parameters, null, cancellationToken);
     }
 
