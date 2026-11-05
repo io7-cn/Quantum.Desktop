@@ -1,5 +1,7 @@
 # Quantum Desktop instructions
 
+- Follow the [English development standards](.standards/docs/en/README.md) at the commit recorded by this repository. Use the contributor-approved Git identity for both author and committer; never invent a placeholder identity.
+
 - Group Desktop host source in `src/` by technical responsibility. Apply the same organizing principle to sibling directories. Keep tests in `tests/` and supporting release scripts in `.ci/`. Maintain the plugin samples in [Quantum SDK](https://github.com/io7-cn/Quantum.Sdk/tree/v0.3.0-rc.2/samples). Mirror the directory layout of `src/Quantum/` in `tests/Quantum.Tests/` for feature tests.
 - Read the [English documentation](docs/en/README.md). Maintain matching English and Simplified Chinese files under docs/en/ and docs/zh-CN/, link each pair and update both editions when behavior changes. Check affected links when moving or retiring a document.
 - Treat the [.NET SDK](https://github.com/io7-cn/Quantum.Sdk/tree/v0.3.0-rc.2/dotnet) and [TypeScript SDK](https://github.com/io7-cn/Quantum.Sdk/tree/v0.3.0-rc.2/typescript) as adapters over the same plugin capabilities. When a public capability changes, inspect both SDKs and the Desktop adapters, including the iframe transport.

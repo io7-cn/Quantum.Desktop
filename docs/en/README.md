@@ -39,3 +39,14 @@ dotnet run --project src/Quantum/Quantum.csproj --framework net10.0-windows10.0.
 ```
 
 Attribution and third-party license notices are provided in [NOTICE](../../NOTICE).
+
+## Development standards
+
+Follow the [English development standards](../../.standards/docs/en/README.md). The .standards submodule records the exact reviewed revision; upstream changes apply only after an explicit update of that recorded commit. Initialize it before development:
+
+```sh
+git submodule update --init --recursive
+python .standards/.ci/check-adoption.py
+```
+
+Keep both language editions aligned. AGENTS.md links to the adopted English entry point; project-specific instructions supplement the shared requirements.

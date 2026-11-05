@@ -39,3 +39,14 @@ dotnet run --project src/Quantum/Quantum.csproj --framework net10.0-windows10.0.
 ```
 
 版权归属及第三方许可说明见 [NOTICE](../../NOTICE)。
+
+## 开发规范
+
+遵循[简体中文开发规范](../../.standards/docs/zh-CN/README.md)。.standards 子模块记录经过审查的确切版本；上游变更只有在显式更新该提交后才生效。开发前初始化：
+
+```sh
+git submodule update --init --recursive
+python .standards/.ci/check-adoption.py
+```
+
+同步维护两种语言。AGENTS.md 指向采用的英文入口，项目专属指令补充共享规范。
