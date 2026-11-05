@@ -8,7 +8,7 @@
 @inject QuantumMarketplaceOptions MarketplaceOptions
 @inject IStringLocalizer<AppStrings> L
 
-<PageTitle>@L["PluginMarketplace"] · Quantum</PageTitle>
+<PageTitle></PageTitle>
 
 <section class="marketplace-page">
     <header class="marketplace-hero">
@@ -17,10 +17,9 @@
             <p>@L["FindPluginsForQuantum"]</p>
         </div>
         <div class="platform-status @(_platformReachable ? "connected" : "unavailable")">
-            <img src="assets/quantum-mark.svg" alt="" />
             <span aria-hidden="true">●</span>
             <div>
-                <strong>@L["QuantumPlatform"]</strong>
+                <span>@L[_isLoading ? "MarketplaceConnecting" : _platformReachable ? "MarketplaceConnected" : "MarketplaceUnavailable"]</span>
             </div>
         </div>
     </header>
@@ -29,14 +28,14 @@
     <nav class="marketplace-sections" aria-label="@L["MarketplaceViews"]">
         <button type="button"
                 class="@(_activeArea == MarketplaceArea.Discover ? "active" : null)"
+                aria-pressed="@(_activeArea == MarketplaceArea.Discover)"
                 @onclick="() => SwitchArea(MarketplaceArea.Discover)">
-            <span aria-hidden="true">▦</span>
             <strong>@L["Discover"]</strong>
         </button>
         <button type="button"
                 class="@(_activeArea == MarketplaceArea.DeveloperTesting ? "active" : null)"
+                aria-pressed="@(_activeArea == MarketplaceArea.DeveloperTesting)"
                 @onclick="() => SwitchArea(MarketplaceArea.DeveloperTesting)">
-            <span aria-hidden="true">⌘</span>
             <strong>@L["MyTestReleases"]</strong>
         </button>
     </nav>
@@ -57,6 +56,7 @@
         <label>
             <span class="search-icon" aria-hidden="true">⌕</span>
             <input placeholder="@L["SearchNamesIdsOrDescriptions"]"
+                   aria-label="@L["SearchNamesIdsOrDescriptions"]"
                    maxlength="200"
                    disabled="@_isBusy"
                    @bind="_search"
@@ -98,7 +98,6 @@
     {
         <div class="result-heading">
             <div>
-                <p class="eyebrow">@L["DiscoverEyebrow"]</p>
                 <h2>@L["ArgAvailablePlugins", _plugins.Count]</h2>
             </div>
             <button type="button" class="refresh-button" disabled="@_isBusy" @onclick="LoadPluginsAsync">↻ @L["Refresh"]</button>
@@ -118,7 +117,6 @@
                     </div>
                     <div>
                         <h3>@plugin.Name</h3>
-                        <p class="plugin-id">@plugin.PluginId</p>
                     </div>
                     <p class="plugin-description">@(string.IsNullOrWhiteSpace(plugin.Description) ? L["NoDescription"] : plugin.Description)</p>
                     @if (plugin.Tags.Length > 0)

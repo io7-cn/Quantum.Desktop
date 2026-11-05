@@ -1,5 +1,47 @@
 window.quantum = window.quantum || {};
 
+window.quantum.startup = {
+  watch() {
+    const root = document.getElementById("app");
+    if (!root) {
+      return;
+    }
+    const dismissWhenReady = () => {
+      if (root.querySelector(".app-shell")) {
+        observer.disconnect();
+        this.dismiss();
+      }
+    };
+    const observer = new MutationObserver(dismissWhenReady);
+    observer.observe(root, { childList: true, subtree: true });
+    dismissWhenReady();
+  },
+
+  dismiss() {
+    const screen = document.getElementById("quantum-startup");
+    if (!screen || screen.dataset.dismissing) {
+      return;
+    }
+    screen.dataset.dismissing = "true";
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      screen.remove();
+      return;
+    }
+    // Keep the entry animation intact even when Blazor is ready immediately.
+    Promise.allSettled(screen.getAnimations({ subtree: true }).map(animation => animation.finished))
+      .then(() => screen.animate([{ opacity: 1 }, { opacity: 0 }], {
+        duration: 280,
+        easing: "cubic-bezier(0.4, 0, 1, 1)",
+        fill: "forwards"
+      }).finished)
+      .then(() => screen.remove(), () => screen.remove());
+  }
+};
+
+if (typeof document !== "undefined") {
+  window.quantum.startup.watch();
+}
+
 window.quantum.localization = {
   setCulture(cultureName, textDirection) {
     document.documentElement.lang = cultureName;

@@ -510,3 +510,97 @@ test("the iframe bootstrap script parses as JavaScript", async () => {
   assert.match(script, /requestCapability\("quantum\.capabilities\.list", \{\}, \{\}, options\)/);
   assert.match(script, /hostRpc\("request", "request", \{ capabilityName, payload, context \}, options\)/);
 });
+
+test("startup waits for the rendered shell and releases its observer", t => {
+  const originalDocument = globalThis.document;
+  const originalObserver = globalThis.MutationObserver;
+  t.after(() => {
+    globalThis.document = originalDocument;
+    globalThis.MutationObserver = originalObserver;
+  });
+  let ready = false;
+  let observer;
+  let disconnected = 0;
+  let dismissed = 0;
+  const root = { querySelector() { return ready ? {} : null; } };
+  globalThis.document = { getElementById() { return root; } };
+  globalThis.MutationObserver = class {
+    constructor(callback) { this.callback = callback; observer = this; }
+    observe(target, options) {
+      assert.equal(target, root);
+      assert.deepEqual(options, { childList: true, subtree: true });
+    }
+    disconnect() { disconnected++; }
+  };
+  const startup = Object.assign({}, window.quantum.startup, { dismiss() { dismissed++; } });
+
+  startup.watch();
+  assert.equal(dismissed, 0);
+  observer.callback();
+  assert.equal(disconnected, 0);
+  ready = true;
+  observer.callback();
+  assert.equal(disconnected, 1);
+  assert.equal(dismissed, 1);
+});
+
+test("reduced motion removes startup immediately without animating", t => {
+  const originalDocument = globalThis.document;
+  const originalWindow = globalThis.window;
+  const startup = window.quantum.startup;
+  t.after(() => {
+    globalThis.document = originalDocument;
+    globalThis.window = originalWindow;
+  });
+  let removed = 0;
+  const screen = {
+    dataset: {},
+    remove() { removed++; },
+    getAnimations() { throw new Error("reduced motion must not animate"); }
+  };
+  globalThis.document = { getElementById() { return screen; } };
+  globalThis.window = { matchMedia() { return { matches: true }; } };
+
+  startup.dismiss();
+  startup.dismiss();
+  assert.equal(removed, 1);
+});
+
+test("startup finishes its entrance before fading and cleans up a cancelled exit", async t => {
+  const originalDocument = globalThis.document;
+  const originalWindow = globalThis.window;
+  const startup = window.quantum.startup;
+  t.after(() => {
+    globalThis.document = originalDocument;
+    globalThis.window = originalWindow;
+  });
+  let finishEntrance;
+  const entrance = new Promise(resolve => { finishEntrance = resolve; });
+  let cancelExit;
+  const exit = new Promise((_, reject) => { cancelExit = reject; });
+  const animations = [];
+  let removed = 0;
+  const screen = {
+    dataset: {},
+    getAnimations() { return [{ finished: entrance }]; },
+    animate(frames, options) {
+      animations.push({ frames, options });
+      return { finished: exit };
+    },
+    remove() { removed++; }
+  };
+  globalThis.document = { getElementById() { return screen; } };
+  globalThis.window = { matchMedia() { return { matches: false }; } };
+
+  startup.dismiss();
+  startup.dismiss();
+  assert.equal(animations.length, 0);
+  finishEntrance();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(animations.length, 1);
+  assert.equal(animations[0].options.duration, 280);
+  assert.equal(removed, 0);
+  cancelExit(new Error("WebView reloaded"));
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(removed, 1);
+});
