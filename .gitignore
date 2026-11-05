@@ -29,10 +29,6 @@ BundleArtifacts/
 Package.StoreAssociation.xml
 _pkginfo.txt
 
-# Generated documentation
-/api/
-/_site/
-
 # Local application data
 /data/
 *.zip
