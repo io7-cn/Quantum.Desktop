@@ -6,7 +6,7 @@ namespace Quantum.Updates;
 public sealed class VelopackUpdateBackend : IAppUpdateBackend
 {
     // Public releases require no embedded credentials. Never ship a GitHub PAT.
-    public const string RepositoryUrl = "https://github.com/XmmShp/Quantum";
+    public const string RepositoryUrl = "https://github.com/io7-cn/Quantum.Desktop";
     private readonly UpdateManager _manager = new(new GithubSource(RepositoryUrl, null, false));
     private UpdateInfo? _update;
 

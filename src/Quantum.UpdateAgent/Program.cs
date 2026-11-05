@@ -28,7 +28,7 @@ try
 {
     VelopackApp.Build().SetArgs([]).SetAutoApplyOnStartup(false).Run();
     var locator = VelopackLocator.Current;
-    var manager = new UpdateManager(new GithubSource("https://github.com/XmmShp/Quantum", null, false));
+    var manager = new UpdateManager(new GithubSource("https://github.com/io7-cn/Quantum.Desktop", null, false));
     if (!manager.IsInstalled) throw new InvalidOperationException("The app is not a Velopack installation.");
     string? target = manager.UpdatePendingRestart?.Version.ToString();
     switch (args[0])

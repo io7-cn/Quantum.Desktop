@@ -4,7 +4,7 @@
 
 ## 下载安装
 
-从 [GitHub Releases](https://github.com/XmmShp/Quantum/releases) 下载适合自己系统的安装包。
+从 [GitHub Releases](https://github.com/io7-cn/Quantum.Desktop/releases) 下载适合自己系统的安装包。
 Windows 使用 `Quantum-win-x64-Setup.exe`；macOS 根据 Apple Silicon 或 Intel 处理器选择对应的 `.pkg`。
 可用平台与版本以发布页列出的文件为准。
 
@@ -32,3 +32,11 @@ macOS 从沙箱版本迁移到直接安装版本时，旧容器中的数据不�
 
 如果更新失败，保留错误信息，并附上操作系统、当前版本及目标版本，提交到
 [Issues](https://github.com/io7-cn/Quantum.Desktop/issues)。
+
+## 独立仓库发行工作流
+
+[Release Desktop](../../.github/workflows/release-desktop.yml) 直接构建本仓库。在已验证的 `main` 历史上推送 `desktop-vX.Y.Z` 标签，打包并发布稳定版本。手动运行只上传工作流产物。发布前验证安装包及校验和，已发布版本不可变更。
+
+默认构建 Windows 安装包。若要求 Windows 签名，配置 `WINDOWS_CERTIFICATE_BASE64`、`WINDOWS_CERTIFICATE_PASSWORD` 及仓库变量 `REQUIRE_WINDOWS_SIGNING=true`。配置工作流中列出的应用与安装器证书、签名身份、证书密码和 Apple 公证凭据后，才可启用 `ENABLE_MACOS_RELEASE=true`。启用 macOS 时，两种架构均成功后才能发布。
+
+仍使用旧发行源的客户端需要从本仓库手动安装一次。请先关闭应用，安装新分发版本并保留应用数据目录，后续版本使用本仓库的更新源。源代码仓库的迁移不会自动重定向已安装客户端的更新源。
