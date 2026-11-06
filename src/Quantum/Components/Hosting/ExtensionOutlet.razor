@@ -1,0 +1,203 @@
+@namespace Quantum.Components
+@implements IDisposable
+@using System.Text.Json
+@inject PluginCatalog Catalog
+@inject IStringLocalizer<AppStrings> L
+
+@foreach (var group in _entries.Where(entry => entry.Route is not null).GroupBy(entry => entry.Plugin.Manifest.Id).Where(group => group.Count() > 1))
+{
+    <nav class="settings-tabs">
+        @foreach (var entry in group)
+        {
+            <button type="button" aria-pressed="@IsSelected(entry)"
+                    @onclick="() => _selectedViews[entry.Plugin.Manifest.Id] = entry.Key">@entry.Title</button>
+        }
+    </nav>
+}
+
+@foreach (var entry in _entries.Where(IsSelected))
+{
+    <section class="section-block" @key="entry.Key">
+        <h2>@entry.Title</h2>
+        <ErrorBoundary @key="entry.Key">
+            <ChildContent>
+                @if (entry.Component is not null)
+                {
+                    <DynamicComponent Type="entry.Component" />
+                }
+                else if (entry.Route is not null)
+                {
+                    <WebPluginView Plugin="entry.Plugin" Route="entry.Route" />
+                }
+            </ChildContent>
+            <ErrorContent>
+                <p role="alert">@L["CouldNotStartPluginPage"]</p>
+            </ErrorContent>
+        </ErrorBoundary>
+    </section>
+}
+
+@code {
+    [Parameter, EditorRequired] public string PointId { get; set; } = "";
+    [Parameter] public string? ContributionId { get; set; }
+    [CascadingParameter(Name = "CultureName")] public string CultureName { get; set; } = "en-US";
+    private IDisposable? _observation;
+    private string? _observedPoint;
+    private Quantum.Plugin.Abstraction.QuantumExtensionSnapshot? _snapshot;
+    private IReadOnlyList<Entry> _entries = [];
+    private bool _disposed;
+    private readonly Dictionary<string, string> _selectedViews = new(StringComparer.Ordinal);
+
+    private bool IsSelected(Entry entry)
+    {
+        if (entry.Route is null)
+        {
+            return true;
+        }
+
+        var siblings = _entries.Where(item => item.Route is not null && item.Plugin == entry.Plugin).ToArray();
+        return _selectedViews.TryGetValue(entry.Plugin.Manifest.Id, out var key) && siblings.Any(item => item.Key == key)
+            ? entry.Key == key : entry == siblings[0];
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (_observedPoint != PointId)
+        {
+            _observation?.Dispose();
+            _observedPoint = PointId;
+            _observation = Catalog.Extensions.Observe(PointId, 1, snapshot =>
+            {
+                _ = InvokeAsync(() =>
+                {
+                    if (!_disposed && snapshot.PointId == PointId)
+                    {
+                        _snapshot = snapshot;
+                        Resolve();
+                        StateHasChanged();
+                    }
+                });
+            });
+        }
+
+        Resolve();
+    }
+
+    private void Resolve()
+    {
+        var entries = new List<Entry>();
+        foreach (var contribution in _snapshot?.Contributions ?? [])
+        {
+            var id = $"{contribution.PluginId}/{contribution.LocalId}";
+            if (ContributionId is not null && ContributionId != id)
+            {
+                continue;
+            }
+
+            var plugin = Catalog.FindPlugin(contribution.PluginId);
+            if (plugin is null || contribution.Value.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var value = contribution.Value;
+            var title = GetTitle(value, contribution.LocalId, CultureName);
+            Type? component = null;
+            PluginRouteRegistration? route = null;
+            if (plugin.Manifest.Runtime.Kind == PluginRuntimeKind.DotNet
+                && value.TryGetProperty("component", out var componentName)
+                && componentName.ValueKind == JsonValueKind.String)
+            {
+                component = ResolveComponent(plugin, componentName.GetString());
+                if (component is null || !typeof(IComponent).IsAssignableFrom(component)
+                    || component.IsAbstract || component.ContainsGenericParameters)
+                {
+                    continue;
+                }
+            }
+            else if (plugin.Manifest.Runtime.Kind == PluginRuntimeKind.Web
+                && value.TryGetProperty("view", out var view) && view.ValueKind == JsonValueKind.String
+                && !string.IsNullOrWhiteSpace(view.GetString()))
+            {
+                route = PluginRouteRegistration.CreateWeb(contribution.PluginId,
+                    PluginRouteDefinition.Web($"/extensions/{id}", view.GetString()!, title));
+            }
+            else
+            {
+                continue;
+            }
+
+            var digest = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+                System.Text.Encoding.UTF8.GetBytes(value.GetRawText())));
+            entries.Add(new Entry($"{plugin.RuntimeId:N}:{id}:{CultureName}:{digest}", title, plugin, component, route));
+        }
+
+        _entries = entries;
+    }
+
+    internal static string GetTitle(JsonElement value, string fallback, string cultureName)
+    {
+        if (value.TryGetProperty("titles", out var titles) && titles.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var culture in new[] { cultureName, cultureName.Split('-')[0] })
+            {
+                if (titles.TryGetProperty(culture, out var title) && title.ValueKind == JsonValueKind.String)
+                {
+                    return title.GetString()!;
+                }
+            }
+        }
+
+        return value.TryGetProperty("title", out var text) && text.ValueKind == JsonValueKind.String
+            ? text.GetString()! : fallback;
+    }
+
+    internal static bool IsValidView(Quantum.Plugin.Abstraction.QuantumExtensionContribution contribution, PluginCatalog catalog)
+    {
+        var plugin = catalog.FindPlugin(contribution.PluginId);
+        var value = contribution.Value;
+        if (plugin is null || value.ValueKind != JsonValueKind.Object)
+        {
+            return false;
+        }
+
+        if (plugin.Manifest.Runtime.Kind == PluginRuntimeKind.DotNet)
+        {
+            var component = value.TryGetProperty("component", out var name) && name.ValueKind == JsonValueKind.String
+                ? ResolveComponent(plugin, name.GetString()) : null;
+            return component is not null && typeof(IComponent).IsAssignableFrom(component)
+                && !component.IsAbstract && !component.ContainsGenericParameters;
+        }
+
+        return value.TryGetProperty("view", out var view) && view.ValueKind == JsonValueKind.String
+            && !string.IsNullOrWhiteSpace(view.GetString());
+    }
+
+    private static Type? ResolveComponent(LoadedPlugin plugin, string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return null;
+        }
+
+        try
+        {
+            return plugin.EntryAssembly?.GetType(name, throwOnError: false);
+        }
+        catch (Exception exception) when (exception is ArgumentException or TypeLoadException or System.IO.FileNotFoundException)
+        {
+            return null;
+        }
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        _observation?.Dispose();
+        _entries = [];
+        _snapshot = null;
+    }
+
+    private sealed record Entry(string Key, string Title, LoadedPlugin Plugin, Type? Component,
+        PluginRouteRegistration? Route);
+}

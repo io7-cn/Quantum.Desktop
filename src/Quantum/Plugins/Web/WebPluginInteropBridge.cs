@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using NOF.Contract;
-using Quantum.Plugin.Abstraction;
 using Quantum.Plugins;
 
 namespace Quantum.WebPlugins;
@@ -22,6 +21,7 @@ public sealed class WebPluginInteropBridge(
     private static readonly TimeSpan InvocationTimeout = TimeSpan.FromSeconds(30);
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _invocations = new();
     private readonly ConcurrentDictionary<string, Lazy<WebEventBusRuntime>> _eventBuses = new();
+    private readonly ConcurrentDictionary<string, IDisposable> _extensionHandles = new();
     private bool _disposed;
 
     [JSInvokable]
@@ -70,6 +70,7 @@ public sealed class WebPluginInteropBridge(
                 "environment" => InvokeEnvironment(plugin, method),
                 "navigation" => InvokeNavigation(method, arguments),
                 "mobile" => InvokeMobile(plugin, method, arguments),
+                "extensions" => InvokeExtensions(plugin, method, arguments),
                 "notify" => await InvokeNotifyAsync(
                         plugin, runtimeId, method, arguments, cancellation.Token)
                     .ConfigureAwait(false),
@@ -118,7 +119,24 @@ public sealed class WebPluginInteropBridge(
     public async ValueTask ReleaseRuntimeAsync(string pluginId, string runtimeId)
     {
         var plugin = catalog.FindPlugin(pluginId);
-        if (plugin?.RuntimeId.ToString("N") == runtimeId) plugin.MobilePages.Clear();
+        var prefix = CreateRuntimeKey(pluginId, runtimeId) + ":extensions:";
+        foreach (var key in _extensionHandles.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal)))
+        {
+            if (_extensionHandles.TryRemove(key, out var handle))
+            {
+                handle.Dispose();
+            }
+        }
+
+        if (plugin?.RuntimeId.ToString("N") == runtimeId)
+        {
+            plugin.Extensions?.Clear();
+        }
+        if (plugin?.RuntimeId.ToString("N") == runtimeId)
+        {
+            plugin.MobilePages.Clear();
+        }
+
         if (_eventBuses.TryRemove(CreateRuntimeKey(pluginId, runtimeId), out var runtime)
             && runtime.IsValueCreated)
         {
@@ -156,6 +174,82 @@ public sealed class WebPluginInteropBridge(
         }
 
         _eventBuses.Clear();
+        foreach (var handle in _extensionHandles.Values)
+        {
+            handle.Dispose();
+        }
+
+        _extensionHandles.Clear();
+    }
+
+    private JsonElement InvokeExtensions(LoadedPlugin plugin, string method, JsonElement arguments)
+    {
+        var extensions = plugin.Extensions
+            ?? throw new InvalidOperationException("The plugin extension scope is unavailable.");
+        var handleId = QuantumExtensionContract.LocalId(RequireString(arguments, "handleId"));
+        var key = CreateRuntimeKey(plugin.Manifest.Id, plugin.RuntimeId.ToString("N")) + ":extensions:" + handleId;
+        if (method == "dispose")
+        {
+            if (_extensionHandles.TryRemove(key, out var previous))
+            {
+                previous.Dispose();
+            }
+
+            return Serialize(null);
+        }
+
+        if (method == "update")
+        {
+            if (!_extensionHandles.TryGetValue(key, out var previous) || previous is not IQuantumContribution contribution)
+            {
+                throw new ObjectDisposedException(handleId);
+            }
+
+            contribution.Update(arguments.GetProperty("value"));
+            return Serialize(null);
+        }
+
+        if (_extensionHandles.ContainsKey(key))
+        {
+            throw new InvalidOperationException("An extension handle with this ID already exists.");
+        }
+
+        var version = arguments.GetProperty("contractVersion").GetInt32();
+        IDisposable handle = method switch
+        {
+            "define" => extensions.Define(RequireString(arguments, "localId"), version),
+            "register" => extensions.Register(RequireString(arguments, "pointId"), version,
+                RequireString(arguments, "localId"), arguments.GetProperty("value"),
+                arguments.TryGetProperty("order", out var order) ? order.GetInt32() : 0),
+            "observe" => extensions.Observe(RequireString(arguments, "pointId"), version,
+                snapshot => _ = DeliverExtensionSnapshotAsync(plugin, handleId, snapshot)),
+            _ => throw new InvalidOperationException("Unknown extension method.")
+        };
+        if (!_extensionHandles.TryAdd(key, handle))
+        {
+            handle.Dispose();
+            throw new InvalidOperationException("An extension handle with this ID already exists.");
+        }
+
+        return Serialize(null);
+    }
+
+    private async Task DeliverExtensionSnapshotAsync(LoadedPlugin plugin, string handleId, QuantumExtensionSnapshot snapshot)
+    {
+        if (_disposed || catalog.FindPlugin(plugin.Manifest.Id)?.RuntimeId != plugin.RuntimeId)
+        {
+            return;
+        }
+
+        try
+        {
+            await javaScript.InvokeVoidAsync("quantum.plugins.deliverExtensionSnapshot",
+                plugin.Manifest.Id, plugin.RuntimeId.ToString("N"), handleId, snapshot).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            logger.LogDebug(exception, "Could not deliver extension snapshot to {PluginId}.", plugin.Manifest.Id);
+        }
     }
 
     private JsonElement InvokeMobile(LoadedPlugin plugin, string method, JsonElement arguments)

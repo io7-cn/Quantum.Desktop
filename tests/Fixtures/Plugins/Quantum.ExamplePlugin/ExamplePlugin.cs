@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Quantum.Plugin.Abstraction;
 using MobileUi = Quantum.Plugin.Abstraction.Mobile;
@@ -37,6 +38,20 @@ public sealed class ExamplePlugin : IQuantumPlugin
                 MobileUi.Text("title", "Connected to your desktop").Appearance("title"),
                 MobileUi.Text("description", "This button invokes the existing desktop plugin RPC."),
                 MobileUi.Button("greet", "Say hello").OnClick(MobileUi.Request("example.greet")))));
+
+        var extensions = services.GetRequiredService<IQuantumExtensions>();
+        // Definitions and contributions are runtime-owned and require no manifest declarations.
+        extensions.Define("example-data", 1);
+        using var message = JsonDocument.Parse("""{"message":"Hello from an extension"}""");
+        extensions.Register("quantum.plugin.example/example-data", 1, "message", message.RootElement);
+        using var page = JsonDocument.Parse("""
+            {
+              "title": "Example plugin",
+              "titles": { "zh-CN": "示例插件" },
+              "component": "Quantum.ExamplePlugin.ExampleSettings"
+            }
+            """);
+        extensions.Register("quantum.settings/pages", 1, "example-settings", page.RootElement);
 
         return Task.CompletedTask;
     }

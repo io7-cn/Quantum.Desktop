@@ -15,6 +15,34 @@ namespace Quantum.Tests;
 
 public sealed class PluginRuntimeManagerTests
 {
+    [Fact]
+    public async Task ExtensionsFollowRealPluginReloadDisableAndEnable()
+    {
+        const string id = "quantum.plugin.example";
+        using var fixture = new RuntimeFixture();
+        await using var manager = fixture.CreateManager();
+        await manager.InitializeAsync(fixture.HostServices);
+        QuantumExtensionSnapshot? data = null;
+        QuantumExtensionSnapshot? pages = null;
+        using var dataObservation = fixture.Catalog.Extensions.Observe(id + "/example-data", 1, snapshot => data = snapshot);
+        using var pagesObservation = fixture.Catalog.Extensions.Observe("quantum.settings/pages", 1, snapshot => pages = snapshot);
+        Assert.True(data!.IsAvailable);
+        Assert.Single(data.Contributions);
+        Assert.Single(pages!.Contributions, item => item.PluginId == id);
+
+        Assert.True((await manager.ReloadAsync(id)).Succeeded);
+        Assert.Single(data.Contributions);
+        Assert.Single(pages.Contributions, item => item.PluginId == id);
+        var impact = manager.GetDisableImpact(id);
+        Assert.True((await manager.DisableAsync(id, impact.CatalogRevision)).Succeeded);
+        Assert.False(data.IsAvailable);
+        Assert.DoesNotContain(pages.Contributions, item => item.PluginId == id);
+        Assert.True((await manager.EnableAsync(id)).Succeeded);
+        Assert.True(data.IsAvailable);
+        Assert.Single(data.Contributions);
+        Assert.Single(pages.Contributions, item => item.PluginId == id);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

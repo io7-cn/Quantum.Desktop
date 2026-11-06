@@ -22,6 +22,7 @@
       const root = document.getElementById("quantum-root");
       const pendingRpc = new Map();
       const eventSubscriptions = new Map();
+      const extensionObservers = new Map();
       let definition = null;
       let context = null;
       let lifecycleController = null;
@@ -162,6 +163,40 @@
         eventSubscriptions.clear();
       };
 
+      const registerExtension = async (method, args, observer) => {
+        const handleId = `extension-${++requestSequence}`;
+        let disposed = false;
+        if (observer) {
+          extensionObservers.set(handleId, { observer, revision: -1 });
+        }
+        try {
+          await hostRpc("extensions", method, { ...args, handleId });
+        } catch (error) {
+          extensionObservers.delete(handleId);
+          // Dispose even when the registration response was lost.
+          await hostRpc("extensions", "dispose", { handleId }).catch(() => {});
+          throw error;
+        }
+        return Object.freeze({
+          async update(value) {
+            if (disposed || method !== "register") {
+              throw new Error("The contribution handle is unavailable.");
+            }
+            if (value === undefined) {
+              throw new TypeError("A contribution must be JSON.");
+            }
+            await hostRpc("extensions", "update", { handleId, value });
+          },
+          async dispose() {
+            if (!disposed) {
+              disposed = true;
+              extensionObservers.delete(handleId);
+              await hostRpc("extensions", "dispose", { handleId });
+            }
+          }
+        });
+      };
+
       const createContext = metadata => Object.freeze({
         plugin: Object.freeze({
           id: metadata.pluginId,
@@ -169,6 +204,21 @@
           runtimeId: metadata.runtimeId
         }),
         signal: lifecycleController.signal,
+        extensions: Object.freeze({
+          define: (localId, contractVersion) => registerExtension("define", { localId, contractVersion }),
+          register: (pointId, contractVersion, localId, value, order = 0) => {
+            if (value === undefined) {
+              return Promise.reject(new TypeError("A contribution must be JSON."));
+            }
+            return registerExtension("register", { pointId, contractVersion, localId, value, order });
+          },
+          observe: (pointId, contractVersion, observer) => {
+            if (typeof observer !== "function") {
+              return Promise.reject(new TypeError("An observer must be a function."));
+            }
+            return registerExtension("observe", { pointId, contractVersion }, observer);
+          }
+        }),
         mobile: Object.freeze({
           publish: page => hostRpc("mobile", "publish", { page }),
           remove: pageId => hostRpc("mobile", "remove", { pageId })
@@ -225,6 +275,19 @@
           || !message
           || message.channel !== channel
           || message.runtimeId !== runtimeId) {
+          return;
+        }
+
+        if (message.type === "extension-snapshot") {
+          const entry = extensionObservers.get(message.handleId);
+          if (entry && message.snapshot.revision > entry.revision) {
+            entry.revision = message.snapshot.revision;
+            try {
+              entry.observer(message.snapshot);
+            } catch (error) {
+              void hostRpc("log", "error", { message: errorMessage(error) }).catch(() => {});
+            }
+          }
           return;
         }
 
@@ -342,6 +405,7 @@
               pending.reject(new Error("Plugin runtime was deactivated."));
             }
             pendingRpc.clear();
+            extensionObservers.clear();
             post("deactivated");
           }
         } catch (error) {

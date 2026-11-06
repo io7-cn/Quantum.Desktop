@@ -6,6 +6,8 @@
 @inject CultureService CultureService
 @inject IStringLocalizer<AppStrings> L
 @inject NavigationManager Navigation
+@using System.Text.Json
+@using Quantum.Plugin.Abstraction
 
 <PageTitle></PageTitle>
 
@@ -19,21 +21,23 @@
     </header>
 
     <nav class="settings-tabs" aria-label="@L["Settings"]">
-        @foreach (var area in Enum.GetValues<SettingsArea>())
+        @foreach (var page in _pages)
         {
-            <button type="button" class="@(_activeArea == area ? "active" : null)"
-                    aria-pressed="@(_activeArea == area)" @onclick="() => _activeArea = area">
-                @L[area.ToString()]
+            var pageId = $"{page.PluginId}/{page.LocalId}";
+            <button type="button" class="@(_activePage == pageId ? "active" : null)"
+                    aria-pressed="@(_activePage == pageId)" @onclick="() => SelectPage(pageId)">
+                @PageTitle(page)
             </button>
         }
     </nav>
 
-    @if (_activeArea == SettingsArea.AccountSettings)
+    @if (_activePage == "quantum.settings/account")
     {
         <AccountSettings />
+        <ExtensionOutlet PointId="quantum.settings/accounts" />
     }
 
-    @if (_activeArea == SettingsArea.GeneralSettings)
+    @if (_activePage == "quantum.settings/general")
     {
         <section class="section-block">
             <div class="section-heading">
@@ -51,9 +55,10 @@
         </section>
 
         <AppUpdatePanel />
+        <ExtensionOutlet PointId="quantum.settings/general" />
     }
 
-    @if (_activeArea == SettingsArea.PluginManagement)
+    @if (_activePage == "quantum.settings/plugins")
     {
         <section class="section-block">
             <div class="section-heading">
@@ -154,6 +159,15 @@
         }
     }
 
+    @if (_activePage == "quantum.settings/plugins")
+    {
+        <ExtensionOutlet PointId="quantum.settings/plugins" />
+    }
+    else if (!_activePage.StartsWith("quantum.settings/", StringComparison.Ordinal))
+    {
+        <ExtensionOutlet @key="_activePage" PointId="quantum.settings/pages" ContributionId="@_activePage" />
+    }
+
     @if (_pendingDisableImpact is { } disableImpact)
     {
         <div class="dialog-backdrop">
@@ -226,7 +240,7 @@
         </div>
     }
 
-    @if (_activeArea == SettingsArea.PluginManagement && PluginCatalog.Failures.Count > 0)
+    @if (_activePage == "quantum.settings/plugins" && PluginCatalog.Failures.Count > 0)
     {
         <section class="section-block failures">
             <div class="section-heading">
@@ -252,20 +266,29 @@
     [SupplyParameterFromQuery(Name = "section")]
     public string? Section { get; set; }
 
-    private SettingsArea _activeArea;
+    private string _activePage = "quantum.settings/general";
+    private IReadOnlyList<QuantumExtensionContribution> _pages = [];
+    private IDisposable? _pagesObservation;
+    private bool _disposed;
+
+    private string PageTitle(QuantumExtensionContribution page)
+        => page.PluginId == "quantum.settings"
+            ? L[page.Value.GetProperty("titleKey").GetString()!]
+            : ExtensionOutlet.GetTitle(page.Value, page.LocalId, CultureService.CurrentCulture.Name);
+
+    private void SelectPage(string pageId)
+    {
+        _activePage = pageId;
+        var section = pageId.StartsWith("quantum.settings/", StringComparison.Ordinal)
+            ? pageId["quantum.settings/".Length..] : pageId;
+        Navigation.NavigateTo($"/settings?section={Uri.EscapeDataString(section)}", replace: true);
+    }
     private string? _busyPluginId;
     private string? _operationMessage;
     private bool _operationSucceeded;
     private IReadOnlyList<DisabledPluginInfo> _disabledPlugins = [];
     private PluginOperationImpact? _pendingDisableImpact;
     private PluginOperationImpact? _pendingUninstallImpact;
-
-    private enum SettingsArea
-    {
-        GeneralSettings,
-        PluginManagement,
-        AccountSettings
-    }
 
     private bool IsBusy => _busyPluginId is not null
         || _pendingDisableImpact is not null
@@ -281,24 +304,50 @@
 
     protected override void OnParametersSet()
     {
-        _activeArea = Section switch
+        _activePage = Section switch
         {
-            "account" => SettingsArea.AccountSettings,
-            "plugins" => SettingsArea.PluginManagement,
+            "account" => "quantum.settings/account",
+            "plugins" => "quantum.settings/plugins",
+            "general" => "quantum.settings/general",
+            { } value when value.Contains('/') => value,
             _ => new Uri(Navigation.Uri).Fragment == "#account"
-                ? SettingsArea.AccountSettings
-                : SettingsArea.GeneralSettings
+                ? "quantum.settings/account" : "quantum.settings/general"
         };
+        if (_pages.Count > 0 && !_pages.Any(page => $"{page.PluginId}/{page.LocalId}" == _activePage))
+        {
+            _activePage = "quantum.settings/general";
+        }
     }
 
     protected override void OnInitialized()
     {
         PluginCatalog.Changed += OnCatalogChanged;
         RefreshDisabledPlugins();
+        _pagesObservation = PluginCatalog.Extensions.Observe("quantum.settings/pages", 1, snapshot =>
+        {
+            _ = InvokeAsync(() =>
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _pages = snapshot.Contributions.Where(page => page.Value.ValueKind == JsonValueKind.Object
+                    && (page.PluginId == "quantum.settings" || ExtensionOutlet.IsValidView(page, PluginCatalog))).ToArray();
+                if (!_pages.Any(page => $"{page.PluginId}/{page.LocalId}" == _activePage))
+                {
+                    _activePage = "quantum.settings/general";
+                }
+
+                StateHasChanged();
+            });
+        });
     }
 
     public void Dispose()
     {
+        _disposed = true;
+        _pagesObservation?.Dispose();
         PluginCatalog.Changed -= OnCatalogChanged;
     }
 

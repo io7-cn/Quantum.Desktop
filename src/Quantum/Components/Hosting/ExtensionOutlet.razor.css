@@ -1,0 +1,26 @@
+.settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-tabs button {
+  padding: 10px 2px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.settings-tabs button[aria-pressed="true"] {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+}
+
+.settings-tabs button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

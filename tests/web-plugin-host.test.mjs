@@ -604,3 +604,62 @@ test("startup finishes its entrance before fading and cleans up a cancelled exit
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(removed, 1);
 });
+
+
+test("extension delivery targets only the current Web runtime", () => {
+  const deliveries = [];
+  const record = { runtimeId: "current", disposed: false };
+  const host = createHost({ post: (...args) => deliveries.push(args) });
+  host.records.set("example.plugin", record);
+  host.deliverExtensionSnapshot("example.plugin", "old", "watch", { revision: 1 });
+  host.deliverExtensionSnapshot("example.plugin", "current", "watch", { revision: 2 });
+  record.disposed = true;
+  host.deliverExtensionSnapshot("example.plugin", "current", "watch", { revision: 3 });
+  assert.equal(deliveries.length, 1);
+  assert.equal(deliveries[0][1], "extension-snapshot");
+});
+
+test("the real iframe extension adapter registers, updates and filters stale snapshots", async () => {
+  const html = await readFile(new URL("../src/Quantum/wwwroot/webPluginFrame.html", import.meta.url), "utf8");
+  // Replace only the browser module loader; execute the actual context and message adapter.
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)[1]
+    .replace("const module = await import(moduleUrl);", "const module = { default: { activate: capture } };");
+  const listeners = new Map();
+  const calls = [];
+  let context;
+  const parent = {
+    postMessage(message) {
+      if (message.type === "rpc") {
+        calls.push(message);
+        queueMicrotask(() => receive({ type: "rpc-result", requestId: message.requestId, result: null }));
+      }
+    }
+  };
+  const receive = message => listeners.get("message")({
+    source: parent,
+    data: { channel: "quantum-web-plugin", runtimeId: "__QUANTUM_RUNTIME_ID__", ...message }
+  });
+  new Function("parent", "document", "addEventListener", "URL", "capture", script)(
+    parent, { getElementById: () => ({}) }, (name, callback) => listeners.set(name, callback),
+    { createObjectURL: () => "test-module", revokeObjectURL() {} }, value => { context = value; });
+  await receive({ type: "initialize", metadata: { pluginId: "example.plugin", runtimeId: "test", version: "1.0.0" }, source: "" });
+  const point = await context.extensions.define("actions", 1);
+  const entry = await context.extensions.register("example.plugin/actions", 1, "entry", { label: "Before" });
+  await entry.update({ label: "After" });
+  const revisions = [];
+  const watch = await context.extensions.observe("example.plugin/actions", 1, snapshot => revisions.push(snapshot.revision));
+  const handleId = calls.find(call => call.method === "observe").arguments.handleId;
+  for (const revision of [2, 1, 2, 3]) {
+    await receive({ type: "extension-snapshot", handleId, snapshot: { revision } });
+  }
+  assert.deepEqual(revisions, [2, 3]);
+  await watch.dispose();
+  await receive({ type: "extension-snapshot", handleId, snapshot: { revision: 4 } });
+  assert.deepEqual(revisions, [2, 3]);
+  await entry.dispose();
+  await entry.dispose();
+  await assert.rejects(entry.update(null), /unavailable/);
+  await assert.rejects(context.extensions.register("example.plugin/actions", 1, "bad", undefined), /JSON/);
+  await point.dispose();
+  assert.deepEqual(calls.map(call => call.method), ["define", "register", "update", "observe", "dispose", "dispose", "dispose"]);
+});

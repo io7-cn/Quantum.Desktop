@@ -1,0 +1,39 @@
+@namespace Quantum.ExamplePlugin
+@using Microsoft.AspNetCore.Components
+@using Quantum.Plugin.Abstraction
+@implements IDisposable
+@inject IQuantumExtensions Extensions
+
+<ul>
+    @foreach (var contribution in _snapshot?.Contributions ?? [])
+    {
+        <li>@contribution.Value.GetProperty("message").GetString()</li>
+    }
+</ul>
+
+@code {
+    private QuantumExtensionSnapshot? _snapshot;
+    private IDisposable? _observation;
+    private bool _disposed;
+
+    protected override void OnInitialized()
+    {
+        _observation = Extensions.Observe("quantum.plugin.example/example-data", 1, snapshot =>
+        {
+            _ = InvokeAsync(() =>
+            {
+                if (!_disposed)
+                {
+                    _snapshot = snapshot;
+                    StateHasChanged();
+                }
+            });
+        });
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        _observation?.Dispose();
+    }
+}
