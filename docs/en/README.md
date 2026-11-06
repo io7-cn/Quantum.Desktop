@@ -22,7 +22,7 @@ The plugins under `tests/Fixtures/Plugins/` are fixed host test fixtures derived
 
 Logs go to `Logs/quantum-YYYYMMDD-HHmmss-PID-SEGMENT.log` under application data, with a 20 MiB threshold per segment. The file writer rolls before a new entry would exceed the threshold and keeps a single oversized entry intact. Pass `--console` to also see logs in the terminal. With `dotnet run`, append `-- --console` to the launch command.
 
-See [Login sessions](login-sessions.md), [Architecture](architecture.md), [Desktop releases](desktop-releases.md), the [.NET plugin guide](plugin-development.md), the [TypeScript plugin guide](web-plugin-development.md) and [Contributing](CONTRIBUTING.md). Licensed under [Apache License 2.0](../../LICENSE).
+See [Login sessions](login-sessions.md), [Architecture](architecture.md), [Runtime extensions](extensions.md), [Desktop releases](desktop-releases.md), the [.NET plugin guide](plugin-development.md), the [TypeScript plugin guide](web-plugin-development.md) and [Contributing](CONTRIBUTING.md). Licensed under [Apache License 2.0](../../LICENSE).
 
 ## Launch commands
 
@@ -50,5 +50,3 @@ python .standards/.ci/check-adoption.py
 ```
 
 Keep both language editions aligned. AGENTS.md links to the adopted English entry point; project-specific instructions supplement the shared requirements.
-
-[Runtime extensions](extensions.md)

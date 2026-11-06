@@ -22,7 +22,7 @@ Quantum Desktop 是面向 Windows 和 macOS 的本地优先插件宿主，采用
 
 日志写入应用数据目录下的 `Logs/quantum-YYYYMMDD-HHmmss-PID-SEGMENT.log`，每段的滚动阈值为 20 MiB。写入下一条会超过阈值时先切换文件，单条超限日志仍完整写入。向应用传入 `--console` 可在终端同步查看日志。使用 `dotnet run` 时，在启动命令后追加 `-- --console`。
 
-参见[登录会话](login-sessions.md)、[架构](architecture.md)、[桌面发行](desktop-releases.md)、[.NET 插件指南](plugin-development.md)、[TypeScript 插件指南](web-plugin-development.md)及[贡献指南](CONTRIBUTING.md)。项目采用 [Apache License 2.0 许可证](../../LICENSE)。
+参见[登录会话](login-sessions.md)、[架构](architecture.md)、[运行时扩展](extensions.md)、[桌面发行](desktop-releases.md)、[.NET 插件指南](plugin-development.md)、[TypeScript 插件指南](web-plugin-development.md)及[贡献指南](CONTRIBUTING.md)。项目采用 [Apache License 2.0 许可证](../../LICENSE)。
 
 ## 启动命令
 
@@ -50,5 +50,3 @@ python .standards/.ci/check-adoption.py
 ```
 
 同步维护两种语言。AGENTS.md 指向采用的英文入口，项目专属指令补充共享规范。
-
-[运行时扩展](extensions.md)
