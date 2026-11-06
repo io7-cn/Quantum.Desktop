@@ -25,7 +25,7 @@
         {
             var pageId = $"{page.PluginId}/{page.LocalId}";
             <button type="button" class="@(_activePage == pageId ? "active" : null)"
-                    aria-pressed="@(_activePage == pageId)" @onclick="() => SelectPage(pageId)">
+                    aria-pressed="@(_activePage == pageId ? "true" : "false")" @onclick="() => SelectPage(pageId)">
                 @PageTitle(page)
             </button>
         }

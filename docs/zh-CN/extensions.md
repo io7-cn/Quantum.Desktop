@@ -4,6 +4,8 @@
 
 Desktop 实现 SDK 中通过代码定义、无业务类型依赖的 JSON 扩展协议。宿主注册目录位于 `Plugins/Extensions`，不解释业务载荷。插件通过 `IQuantumExtensions` 或 `context.extensions` 定义和观察自己的扩展点，无需增加 `plugin.json` 字段。定义和贡献属于运行时代次，只有已提交目录中的代次可见。载荷为独立 JSON 数据，修订号仅用于会话内排序。设置模块定义下列消费契约，其他消费者可以定义不同的 JSON 契约。
 
+载荷最多包含 64 层嵌套容器，UTF-8 JSON 不得超过 128 KiB。Web 适配层会拒绝 JSON 无法保留的值，包括非有限数值、`undefined`、函数、循环引用、稀疏数组以及 `Date`、`Map` 等非 JSON 对象。注册或更新被拒绝时，已有贡献保持不变。
+
 ## 设置视图契约，版本 1
 
 | 扩展点 | 内容 |
@@ -25,6 +27,8 @@ extensions.Register("quantum.settings/pages", 1, "settings", page.RootElement);
 账户服务使用与其他分组相同的视图贡献。组件负责登录流程，通过插件服务管理状态和持久化。凭据禁止放入贡献。没有专门的账户提供方 API 或表单语言。插件也可以在自己的组件中观察另一个扩展点并展示贡献，从而开放自己的界面。
 
 页签链接使用 `/settings?section=<插件ID/本地ID>`，兼容现有 `section=account`、`section=plugins` 和 `#account` 链接。选中贡献消失时返回通用页。.NET 组件通过现有激活器获取插件服务容器；Web 视图使用已有的沙箱 iframe 和 route/view 挂载契约。切换语言重新挂载。Web 运行时目前每个插件同时挂载一个视图，同一 Web 插件的多个贡献需要通过选择切换，不应同时挂载。
+
+.NET 视图组件应通过构造函数注入插件私有服务。插件组件激活器先从插件容器解析构造函数参数，再回退到宿主服务。Razor 的 `@inject` 属性由 Blazor 从宿主容器解析，无法访问插件私有注册。
 
 ## 集成验证
 

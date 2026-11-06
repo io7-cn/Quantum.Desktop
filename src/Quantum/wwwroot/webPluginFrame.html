@@ -59,6 +59,14 @@
 
       const errorMessage = error => error instanceof Error ? error.message : String(error);
 
+      const runCleanup = async cleanup => {
+        if (typeof cleanup === "function") {
+          await cleanup();
+        } else if (cleanup && typeof cleanup.dispose === "function") {
+          await cleanup.dispose();
+        }
+      };
+
       const hostRpc = (capability, method, args = {}, options = {}) => {
         const requestId = globalThis.crypto?.randomUUID?.()
           ?? `${Date.now()}-${++requestSequence}`;
@@ -163,6 +171,51 @@
         eventSubscriptions.clear();
       };
 
+      const serializeExtensionPayload = value => {
+        const parents = new Set();
+        const visit = (node, depth) => {
+          if (node === null || typeof node === "string" || typeof node === "boolean") {
+            return;
+          }
+          if (typeof node === "number" && Number.isFinite(node)) {
+            return;
+          }
+          if (typeof node !== "object" || depth >= 64 || parents.has(node)) {
+            throw new TypeError("An extension contribution must be JSON with at most 64 nested containers.");
+          }
+          const array = Array.isArray(node);
+          if (!array && Object.getPrototypeOf(node) !== Object.prototype && Object.getPrototypeOf(node) !== null) {
+            throw new TypeError("An extension contribution must contain only JSON objects and arrays.");
+          }
+          parents.add(node);
+          if (array) {
+            for (let index = 0; index < node.length; index++) {
+              if (!Object.hasOwn(node, index)) {
+                throw new TypeError("Sparse arrays are not JSON contributions.");
+              }
+            }
+          }
+          for (const key of Reflect.ownKeys(node)) {
+            if (array && key === "length") {
+              continue;
+            }
+            const property = Object.getOwnPropertyDescriptor(node, key);
+            if (typeof key !== "string" || !property.enumerable || !("value" in property)
+              || (array && (!/^(0|[1-9][0-9]*)$/.test(key) || Number(key) >= node.length))) {
+              throw new TypeError("An extension contribution must contain only JSON data properties.");
+            }
+            visit(property.value, depth + 1);
+          }
+          parents.delete(node);
+        };
+        visit(value, 0);
+        const json = JSON.stringify(value);
+        if (new TextEncoder().encode(json).length > 131072) {
+          throw new TypeError("An extension contribution must be at most 128 KiB.");
+        }
+        return json;
+      };
+
       const registerExtension = async (method, args, observer) => {
         const handleId = `extension-${++requestSequence}`;
         let disposed = false;
@@ -182,10 +235,7 @@
             if (disposed || method !== "register") {
               throw new Error("The contribution handle is unavailable.");
             }
-            if (value === undefined) {
-              throw new TypeError("A contribution must be JSON.");
-            }
-            await hostRpc("extensions", "update", { handleId, value });
+            await hostRpc("extensions", "update", { handleId, valueJson: serializeExtensionPayload(value) });
           },
           async dispose() {
             if (!disposed) {
@@ -206,12 +256,8 @@
         signal: lifecycleController.signal,
         extensions: Object.freeze({
           define: (localId, contractVersion) => registerExtension("define", { localId, contractVersion }),
-          register: (pointId, contractVersion, localId, value, order = 0) => {
-            if (value === undefined) {
-              return Promise.reject(new TypeError("A contribution must be JSON."));
-            }
-            return registerExtension("register", { pointId, contractVersion, localId, value, order });
-          },
+          register: async (pointId, contractVersion, localId, value, order = 0) => registerExtension("register",
+            { pointId, contractVersion, localId, valueJson: serializeExtensionPayload(value), order }),
           observe: (pointId, contractVersion, observer) => {
             if (typeof observer !== "function") {
               return Promise.reject(new TypeError("An observer must be a function."));

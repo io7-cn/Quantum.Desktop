@@ -1,19 +1,18 @@
 @namespace Quantum.ExamplePlugin
 @using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
 @using Quantum.Plugin.Abstraction
 @using Microsoft.Extensions.Localization
 @using Quantum.ExamplePlugin.Localization
 @using System.Globalization
 @using System.Text.Json
 @implements IDisposable
-@inject IQuantumExtensions Extensions
-@inject ExampleExtensions Example
 @inject IStringLocalizer<PluginStrings> L
 
 <p>@L["ExtensionsDescription"]</p>
 <div>
-    <button type="button" class="secondary-button" disabled="@(!Example.HasMessage)" @onclick="Example.UpdateMessage">@L["UpdateMessage"]</button>
-    <button type="button" class="secondary-button" @onclick="Example.ToggleMessage">@L[Example.HasMessage ? "WithdrawMessage" : "RestoreMessage"]</button>
+    <button type="button" class="secondary-button" disabled="@(!_example.HasMessage)" @onclick="_example.UpdateMessage">@L["UpdateMessage"]</button>
+    <button type="button" class="secondary-button" @onclick="_example.ToggleMessage">@L[_example.HasMessage ? "WithdrawMessage" : "RestoreMessage"]</button>
 </div>
 <ul aria-live="polite">
     @foreach (var contribution in _snapshot?.Contributions ?? [])
@@ -26,6 +25,15 @@
 </ul>
 
 @code {
+    private readonly IQuantumExtensions _extensions;
+    private readonly ExampleExtensions _example;
+
+    public ExampleSettings(IQuantumExtensions extensions, ExampleExtensions example)
+    {
+        _extensions = extensions;
+        _example = example;
+    }
+
     private QuantumExtensionSnapshot? _snapshot;
     private IDisposable? _observation;
     private bool _disposed;
@@ -49,7 +57,7 @@
 
     protected override void OnInitialized()
     {
-        _observation = Extensions.Observe("quantum.plugin.example/example-data", 1, snapshot =>
+        _observation = _extensions.Observe("quantum.plugin.example/example-data", 1, snapshot =>
         {
             _ = InvokeAsync(() =>
             {

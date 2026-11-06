@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Quantum.Plugin.Abstraction" Version="0.3.0-rc.2" />
+    <PackageReference Include="Quantum.Plugin.Abstraction" Version="0.3.0-rc.3" />
     <PackageReference Include="NOF.Abstraction" />
     <PackageReference Include="NOF.Application" />
     <PackageReference Include="NOF.Contract" />
@@ -122,7 +122,7 @@ Infrastructure 项目。插件不得携带自己的 ABI 副本版本并尝试覆
 `1.2.3+abc`。
 
 完整的强依赖示例见
-[`Quantum.ExampleDependentPlugin`](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.2/samples/Quantum.ExampleDependentPlugin/plugin.json)：它要求
+[`Quantum.ExampleDependentPlugin`](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.3/samples/Quantum.ExampleDependentPlugin/plugin.json)：它要求
 `quantum.plugin.example >= 0.1.0`，并在启动后展示宿主实际解析到的前置插件版本以及一次跨插件方法调用结果。
 插件间调用不传递 `IServiceProvider` 或服务实例。服务端声明 NOF RPC Contract，并让 Host 通过 Quantum transport 暴露
 生成的 Handler：
@@ -301,7 +301,7 @@ await notify.PublishAsync("devices.status", new { state = "ready" }, cancellatio
 
 ### Request 与 Notify 能力
 
-用 [RequestCapability] 声明处理器，并在契约中选择 All 或 Ordered。宿主通过 NOF 在独立 scope 中调用处理器，Ordered 写请求可要求唯一归属。Notify 使用同样的 All 和 Ordered 策略，通过 NOF 在本机内存投递。能力发现、归属和传播规则见 [SDK 能力指南](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.2/docs/zh-CN/dotnet-plugin-development.md)。
+用 [RequestCapability] 声明处理器，并在契约中选择 All 或 Ordered。宿主通过 NOF 在独立 scope 中调用处理器，Ordered 写请求可要求唯一归属。Notify 使用同样的 All 和 Ordered 策略，通过 NOF 在本机内存投递。能力发现、归属和传播规则见 [SDK 能力指南](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.3/docs/zh-CN/dotnet-plugin-development.md)。
 
 ## 5. 提供页面
 

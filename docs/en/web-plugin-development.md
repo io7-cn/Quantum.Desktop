@@ -2,7 +2,7 @@
 
 [简体中文](../zh-CN/web-plugin-development.md)
 
-TypeScript plugins run in an isolated iframe with an opaque origin. This runtime is experimental. Use the [.NET plugin guide](plugin-development.md) for the production development path. See the [working example](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.2/samples/Quantum.ExampleWebPlugin/package.json) and the code examples in this file.
+TypeScript plugins run in an isolated iframe with an opaque origin. This runtime is experimental. Use the [.NET plugin guide](plugin-development.md) for the production development path. See the [working example](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.3/samples/Quantum.ExampleWebPlugin/package.json) and the code examples in this file.
 
 ## 1. Create and bundle the project
 
@@ -22,7 +22,7 @@ MyPlugin/
 ```
 
 ```bash
-npm install @io7/quantum-plugin-sdk@0.3.0-rc.2
+npm install @io7/quantum-plugin-sdk@0.3.0-rc.3
 npm install --save-dev typescript esbuild
 ```
 
@@ -143,7 +143,7 @@ if (!result.isSuccess) {
 console.log(result.value.outcomes);
 ```
 
-Web plugins can use `context.capabilities.catalog()`, `context.notify.publish()`, `context.notify.subscribe()` and `context.request()`. The host forwards these operations through the iframe bridge and disposes subscriptions when the frame runtime is released. See the [TypeScript SDK guide](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.2/docs/en/web-plugin-development.md) for contracts and examples.
+Web plugins can use `context.capabilities.catalog()`, `context.notify.publish()`, `context.notify.subscribe()` and `context.request()`. The host forwards these operations through the iframe bridge and disposes subscriptions when the frame runtime is released. See the [TypeScript SDK guide](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.3/docs/en/web-plugin-development.md) for contracts and examples.
 
 ## 7. Build, install and verify
 

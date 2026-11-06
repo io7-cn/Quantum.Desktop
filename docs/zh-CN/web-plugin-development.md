@@ -27,7 +27,7 @@ Web 插件与 .NET 插件使用相同的 id 规则；`disabled` 是宿主保留 
 安装 SDK 和 bundler：
 
 ```bash
-npm install @io7/quantum-plugin-sdk@0.3.0-rc.2
+npm install @io7/quantum-plugin-sdk@0.3.0-rc.3
 npm install --save-dev typescript esbuild
 ```
 
@@ -193,8 +193,8 @@ npm run build
 ```
 
 把 `plugin.json` 和 `wwwroot` 复制到 `Modules/<plugin-id>` 后执行“重新扫描 Modules”。仓库内的
-[Web 示例](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.2/samples/Quantum.ExampleWebPlugin/package.json) 展示了 iframe 页面、环境查询、导航，以及通过能力名向
-[.NET 示例](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.2/samples/Quantum.ExamplePlugin/Quantum.ExamplePlugin.csproj) 发起 `example.handshake` 调用；打开 .NET 示例页可以看到 JS 发起的累计握手次数。Web 示例页的「收集建议」按钮调用 `example.suggestions`，显示 Contributor 的插件 ID 和答复。
+[Web 示例](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.3/samples/Quantum.ExampleWebPlugin/package.json) 展示了 iframe 页面、环境查询、导航，以及通过能力名向
+[.NET 示例](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.3/samples/Quantum.ExamplePlugin/Quantum.ExamplePlugin.csproj) 发起 `example.handshake` 调用；打开 .NET 示例页可以看到 JS 发起的累计握手次数。Web 示例页的「收集建议」按钮调用 `example.suggestions`，显示 Contributor 的插件 ID 和答复。
 
 也可以把 `plugin.json` 与 `wwwroot` 放在同一个插件目录中打成 ZIP，直接拖到 Quantum 窗口中的任意位置安装；单插件包与多插件整合包使用相同流程，包内插件目录不能互相嵌套。宿主会与已安装版本按 SemVer 择优，并在确认前用同一份新快照校验 Web 入口、强依赖和所有 .NET / Web 插件的兼容性。完整包结构、安全限制与事务语义见 [.NET 插件开发指南的分发 ZIP 安装包章节](plugin-development.md#8-分发-zip-安装包)。
 
@@ -220,4 +220,4 @@ runtime 的后续 RPC，但当前版本还不能把 .NET 侧已经提交的插�
 }
 ```
 
-Web 插件可以用 `context.capabilities.catalog()` 发现能力、用 `context.notify` 发布和订阅通知，并用 `context.request()` 收集贡献。宿主通过 iframe 桥接处理这些操作，并在释放运行时时清理订阅。声明和用法见 [TypeScript SDK 指南](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.2/docs/zh-CN/web-plugin-development.md)。
+Web 插件可以用 `context.capabilities.catalog()` 发现能力、用 `context.notify` 发布和订阅通知，并用 `context.request()` 收集贡献。宿主通过 iframe 桥接处理这些操作，并在释放运行时时清理订阅。声明和用法见 [TypeScript SDK 指南](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.3/docs/zh-CN/web-plugin-development.md)。

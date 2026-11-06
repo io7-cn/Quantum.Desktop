@@ -611,12 +611,56 @@ test("extension delivery targets only the current Web runtime", () => {
   const record = { runtimeId: "current", disposed: false };
   const host = createHost({ post: (...args) => deliveries.push(args) });
   host.records.set("example.plugin", record);
-  host.deliverExtensionSnapshot("example.plugin", "old", "watch", { revision: 1 });
-  host.deliverExtensionSnapshot("example.plugin", "current", "watch", { revision: 2 });
+  host.deliverExtensionSnapshot("example.plugin", "old", "watch", JSON.stringify({ revision: 1 }));
+  host.deliverExtensionSnapshot("example.plugin", "current", "watch", JSON.stringify({ revision: 2 }));
   record.disposed = true;
-  host.deliverExtensionSnapshot("example.plugin", "current", "watch", { revision: 3 });
+  host.deliverExtensionSnapshot("example.plugin", "current", "watch", JSON.stringify({ revision: 3 }));
   assert.equal(deliveries.length, 1);
   assert.equal(deliveries[0][1], "extension-snapshot");
+});
+
+test("the real iframe mounts views and releases both SDK cleanup forms", async () => {
+  const html = await readFile(new URL("../src/Quantum/wwwroot/webPluginFrame.html", import.meta.url), "utf8");
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)[1]
+    .replace("const module = await import(moduleUrl);", "const module = { default: pluginDefinition };");
+  for (const activationIsFunction of [true, false]) {
+    const listeners = new Map();
+    const messages = [];
+    const signals = [];
+    let mounted = 0;
+    let mountCleanups = 0;
+    let activationCleanups = 0;
+    const parent = { postMessage: message => messages.push(message) };
+    const cleanupActivation = async () => { activationCleanups++; };
+    const pluginDefinition = {
+      activate: () => activationIsFunction ? cleanupActivation : { dispose: cleanupActivation },
+      mount(context) {
+        signals.push(context.signal);
+        mounted++;
+        return mounted === 1 ? async () => { mountCleanups++; } : { async dispose() { mountCleanups++; } };
+      }
+    };
+    new Function("parent", "document", "addEventListener", "URL", "pluginDefinition", script)(
+      parent, { getElementById: () => ({ replaceChildren() {} }), documentElement: {} },
+      (name, callback) => listeners.set(name, callback),
+      { createObjectURL: () => "test-module", revokeObjectURL() {} }, pluginDefinition);
+    const receive = message => listeners.get("message")({ source: parent,
+      data: { channel: "quantum-web-plugin", runtimeId: "__QUANTUM_RUNTIME_ID__", ...message } });
+    await receive({ type: "initialize", metadata: {}, source: "" });
+    await receive({ type: "mount", route: { view: "first" } });
+    assert.equal(mounted, 1);
+    assert.equal(mountCleanups, 0);
+    await receive({ type: "mount", route: { view: "second" } });
+    assert.equal(mounted, 2);
+    assert.equal(mountCleanups, 1);
+    assert.equal(signals[0].aborted, true);
+    assert.equal(signals[1].aborted, false);
+    await receive({ type: "deactivate" });
+    assert.equal(mountCleanups, 2);
+    assert.equal(activationCleanups, 1);
+    assert.equal(signals[1].aborted, true);
+    assert.deepEqual(messages.map(message => message.type), ["ready", "activated", "mounted", "mounted", "deactivated"]);
+  }
 });
 
 test("the real iframe extension adapter registers, updates and filters stale snapshots", async () => {
@@ -646,6 +690,8 @@ test("the real iframe extension adapter registers, updates and filters stale sna
   const point = await context.extensions.define("actions", 1);
   const entry = await context.extensions.register("example.plugin/actions", 1, "entry", { label: "Before" });
   await entry.update({ label: "After" });
+  assert.equal(calls.find(call => call.method === "register").arguments.valueJson, '{"label":"Before"}');
+  assert.equal(calls.find(call => call.method === "update").arguments.valueJson, '{"label":"After"}');
   const revisions = [];
   const watch = await context.extensions.observe("example.plugin/actions", 1, snapshot => revisions.push(snapshot.revision));
   const handleId = calls.find(call => call.method === "observe").arguments.handleId;
@@ -660,6 +706,20 @@ test("the real iframe extension adapter registers, updates and filters stale sna
   await entry.dispose();
   await assert.rejects(entry.update(null), /unavailable/);
   await assert.rejects(context.extensions.register("example.plugin/actions", 1, "bad", undefined), /JSON/);
+  const cycle = {};
+  cycle.self = cycle;
+  const symbolKey = { [Symbol('hidden')]: 1 };
+  for (const bad of [NaN, Infinity, { value: undefined }, { value: () => {} }, new Date(), new Map(), cycle, [,,], symbolKey]) {
+    const count = calls.length;
+    await assert.rejects(context.extensions.register("example.plugin/actions", 1, "invalid", bad), TypeError);
+    assert.equal(calls.length, count, "invalid JSON must never reach interop");
+  }
+  const deep = JSON.parse('['.repeat(64) + '0' + ']'.repeat(64));
+  const deepEntry = await context.extensions.register("example.plugin/actions", 1, "deep", deep);
+  assert.equal(calls.at(-1).arguments.valueJson, JSON.stringify(deep));
+  await assert.rejects(deepEntry.update([deep]), /64/);
+  await assert.rejects(deepEntry.update('x'.repeat(131072)), /128 KiB/);
+  await deepEntry.dispose();
   await point.dispose();
-  assert.deepEqual(calls.map(call => call.method), ["define", "register", "update", "observe", "dispose", "dispose", "dispose"]);
+  assert.deepEqual(calls.map(call => call.method), ["define", "register", "update", "observe", "dispose", "dispose", "register", "dispose", "dispose"]);
 });

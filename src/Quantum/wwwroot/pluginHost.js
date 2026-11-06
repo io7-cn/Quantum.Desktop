@@ -558,10 +558,10 @@ window.quantum.plugins = {
     }, "*");
   },
 
-  deliverExtensionSnapshot(pluginId, runtimeId, handleId, snapshot) {
+  deliverExtensionSnapshot(pluginId, runtimeId, handleId, snapshotJson) {
     const record = this.records.get(pluginId);
     if (record && !record.disposed && record.runtimeId === runtimeId) {
-      this.post(record, "extension-snapshot", { handleId, snapshot });
+      this.post(record, "extension-snapshot", { handleId, snapshot: JSON.parse(snapshotJson) });
     }
   },
 

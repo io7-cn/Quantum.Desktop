@@ -1,11 +1,12 @@
-using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using NOF.Contract;
 using Quantum.Plugins;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
 
 namespace Quantum.WebPlugins;
 
@@ -18,6 +19,8 @@ public sealed class WebPluginInteropBridge(
     ILogger<WebPluginInteropBridge> logger) : IDisposable
 {
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
+    // The public payload permits 64 nested containers; the snapshot adds its own envelope.
+    private static readonly JsonSerializerOptions ExtensionSerializerOptions = new(JsonSerializerDefaults.Web) { MaxDepth = 128 };
     private static readonly TimeSpan InvocationTimeout = TimeSpan.FromSeconds(30);
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _invocations = new();
     private readonly ConcurrentDictionary<string, Lazy<WebEventBusRuntime>> _eventBuses = new();
@@ -131,9 +134,6 @@ public sealed class WebPluginInteropBridge(
         if (plugin?.RuntimeId.ToString("N") == runtimeId)
         {
             plugin.Extensions?.Clear();
-        }
-        if (plugin?.RuntimeId.ToString("N") == runtimeId)
-        {
             plugin.MobilePages.Clear();
         }
 
@@ -205,7 +205,7 @@ public sealed class WebPluginInteropBridge(
                 throw new ObjectDisposedException(handleId);
             }
 
-            contribution.Update(arguments.GetProperty("value"));
+            contribution.Update(ReadExtensionPayload(arguments));
             return Serialize(null);
         }
 
@@ -219,7 +219,7 @@ public sealed class WebPluginInteropBridge(
         {
             "define" => extensions.Define(RequireString(arguments, "localId"), version),
             "register" => extensions.Register(RequireString(arguments, "pointId"), version,
-                RequireString(arguments, "localId"), arguments.GetProperty("value"),
+                RequireString(arguments, "localId"), ReadExtensionPayload(arguments),
                 arguments.TryGetProperty("order", out var order) ? order.GetInt32() : 0),
             "observe" => extensions.Observe(RequireString(arguments, "pointId"), version,
                 snapshot => _ = DeliverExtensionSnapshotAsync(plugin, handleId, snapshot)),
@@ -243,13 +243,28 @@ public sealed class WebPluginInteropBridge(
 
         try
         {
+            // Keep the extension JSON inside a string across JS interop so its envelope does not
+            // consume the payload's public depth budget. postMessage still delivers a JSON object.
+            var json = JsonSerializer.Serialize(snapshot, ExtensionSerializerOptions);
             await javaScript.InvokeVoidAsync("quantum.plugins.deliverExtensionSnapshot",
-                plugin.Manifest.Id, plugin.RuntimeId.ToString("N"), handleId, snapshot).ConfigureAwait(false);
+                plugin.Manifest.Id, plugin.RuntimeId.ToString("N"), handleId, json).ConfigureAwait(false);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {
             logger.LogDebug(exception, "Could not deliver extension snapshot to {PluginId}.", plugin.Manifest.Id);
         }
+    }
+
+    private static JsonElement ReadExtensionPayload(JsonElement arguments)
+    {
+        var json = RequireString(arguments, "valueJson");
+        if (Encoding.UTF8.GetByteCount(json) > QuantumExtensionContract.MaximumPayloadBytes)
+        {
+            throw new ArgumentException("Extension payloads must be at most 128 KiB.", nameof(arguments));
+        }
+
+        using var document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 64 });
+        return document.RootElement.Clone();
     }
 
     private JsonElement InvokeMobile(LoadedPlugin plugin, string method, JsonElement arguments)
