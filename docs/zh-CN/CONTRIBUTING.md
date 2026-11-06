@@ -10,6 +10,8 @@ GitHub 已启用 `Protect main` 规则集，保护默认分支（当前为 `main
 
 GitHub Actions 的 `standards`、`test` 和 `windows` 检查必须通过，拉取请求必须与目标分支保持同步。禁止直接推送、强制推送和删除受保护分支，仓库权限将合并操作限制在指定维护者范围内。涉及身份认证、授权、密钥或关键交付控制的变更，还须满足[代码审核规范](../../.standards/docs/zh-CN/01-governance/review-standards.md)要求的额外独立审核。
 
+`test` 门禁要求 Linux 核心测试、macOS 存储测试，以及 Apple Silicon 和 Intel 的未签名 Catalyst Release 构建全部通过。签名和安装包验收仍属于发布检查。
+
 ## 插件能力
 
 变更公开插件能力时，同时检查 .NET SDK、TypeScript SDK 和宿主适配层，更新相关测试及受影响桌面文档的英文版和简体中文版。贡献遵循 [Apache License 2.0 许可证](../../LICENSE)。

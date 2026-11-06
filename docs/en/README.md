@@ -24,6 +24,8 @@ Logs go to `Logs/quantum-YYYYMMDD-HHmmss-PID-SEGMENT.log` under application data
 
 On Windows, application data is `%LOCALAPPDATA%\io7-cn\io.quantum.desktop\Data`, independent of the installation. See [data migration and uninstall choices](desktop-releases.md#local-data-and-uninstalling-on-windows) before upgrading an affected old release.
 
+On macOS, data and personal plugins live in the user's Library directory outside `Quantum.app`. See [macOS migration and uninstall choices](desktop-releases.md#local-data-and-uninstalling-on-macos).
+
 See [Login sessions](login-sessions.md), [Architecture](architecture.md), [Desktop releases](desktop-releases.md), the [.NET plugin guide](plugin-development.md), the [TypeScript plugin guide](web-plugin-development.md) and [Contributing](CONTRIBUTING.md). Licensed under [Apache License 2.0](../../LICENSE).
 
 ## Launch commands

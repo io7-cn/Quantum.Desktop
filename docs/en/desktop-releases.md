@@ -16,6 +16,14 @@ Close older Quantum processes before the first launch. It copies legacy `%LOCALA
 
 After launch, Windows Settings asks whether to keep Quantum data when uninstalling. **Yes (default)** retains it for reinstallation; **No** requires a second confirmation and clears only the new and legacy app-owned data roots after successful uninstall; **Cancel** exits without uninstalling. Silent uninstall and failed uninstall retain data. External plugin directories are never cleared. The entry uses Windows PowerShell and is refreshed on startup and after updates. A missing migration completion marker blocks uninstall through this entry. Never-launched installations use the installer's default entry; direct `Update.exe --uninstall` bypasses the choice but retains the independent data root.
 
+## Local data and uninstalling on macOS
+
+Mac Catalyst stores `quantum.db`, personal `Modules` and the mobile bridge journal in the user's Library directory, outside `Quantum.app`; preferences use the app's defaults domain and credentials use Keychain. Release startup copies still-present bundled plugins into Library `Modules` once, merging without overwriting conflicts. A failed or interrupted migration preserves the previous directory and stops startup. Before upgrading an affected old release, back up plugins from the old `.app` outside the bundle: an updater can replace the bundle before migration runs.
+
+In a directly distributed installation, choose **Settings → General → Uninstall Quantum**. **Keep local data (recommended)** moves the app to Trash and retains data for reinstallation; **Clear local data** requires a second confirmation. The app first moves its bundle to Trash, then stops plugin and bridge writers before clearing its known files, plugin directories, `quantum-*.log` logs, cache, preferences and Keychain records. Unrelated Library files, other apps' logs and external plugin directories remain untouched. Cancel exits without uninstalling; a failed move to Trash does not clear data.
+
+Moving `Quantum.app` to Trash directly in Finder keeps local data without an app confirmation dialog. Use the in-app entry when you want a data choice. Sandboxed development builds keep their system container locations; when switching to direct distribution, export data from the old container as described below.
+
 ## In-app updates
 
 The app checks for updates in the background at startup. Settings shows the installed and target versions, progress and status. Save your work, then select the update and restart action. The updater prefers a delta package and falls back to the full package. An interrupted download can be retried without replacing the current installation. Keep settings, databases and personal plugins under the application data directory, which the update preserves.

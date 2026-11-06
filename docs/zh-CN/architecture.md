@@ -4,6 +4,8 @@
 
 Windows 存储迁移在 MAUI 初始化设置或安全存储前完成：暂存完整副本及 SQLite 备份，以原子目录切换提交，失败则停止启动。参见[存储设计决策](decisions/0001-windows-data.md)及[安装与恢复行为](desktop-releases.md#windows-本地数据与卸载)。
 
+macOS 保留 MAUI 在应用包之外的 Library 存储，通过可恢复的目录替换迁移包内插件。原生卸载入口使用 `NSFileManager` 先将应用移入废纸篓，再停止数据写入，并按用户选择清理已知的应用自有路径、设置和钥匙串记录。共享 Library 和缓存根目录绝不是删除目标；Finder 移除应用时不会调用应用代码，数据默认保留。
+
 ## 组件结构
 
 宿主源码按技术职责组织。`Components` 区分路由页面、视图、布局、路由和宿主适配。`Networking` 区分平台接口与会话、设备中转。

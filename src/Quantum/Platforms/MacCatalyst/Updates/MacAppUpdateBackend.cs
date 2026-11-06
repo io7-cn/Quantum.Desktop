@@ -25,7 +25,9 @@ public sealed class MacAppUpdateBackend : IAppUpdateBackend
 
     private async Task<UpdateAgentMessage> RunAsync(string command, Action<int>? progress = null)
     {
-        var response = Path.Combine(FileSystem.CacheDirectory, $"update-{Guid.NewGuid():N}.json");
+        var responseDirectory = Path.Combine(FileSystem.CacheDirectory, "io.quantum.desktop");
+        Directory.CreateDirectory(responseDirectory);
+        var response = Path.Combine(responseDirectory, $"update-{Guid.NewGuid():N}.json");
         var pid = Spawn(AgentPath, [command, response, Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture)]);
         var exited = false;
         try

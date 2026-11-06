@@ -7,6 +7,81 @@ namespace Quantum.Storage;
 internal static class DesktopDataMigration
 {
     internal const string CompletionFile = ".legacy-storage-v1";
+    internal const string ModulesCompletionFile = ".bundled-modules-v1";
+
+    public static void MigrateModules(string destinationRoot, params string[] bundledRoots)
+    {
+        destinationRoot = Path.GetFullPath(destinationRoot);
+        RejectLinks(destinationRoot);
+        var parent = Path.GetDirectoryName(destinationRoot)!;
+        Directory.CreateDirectory(parent);
+        using var migrationLock = new FileStream(
+            destinationRoot + ".migration.lock", FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var backup = destinationRoot + ".migration-backup";
+        RejectLinks(backup);
+        if (Directory.Exists(backup) && !Directory.Exists(destinationRoot))
+        {
+            Directory.Move(backup, destinationRoot);
+        }
+
+        if (File.Exists(Path.Combine(destinationRoot, ModulesCompletionFile)))
+        {
+            if (Directory.Exists(backup))
+            {
+                Directory.Delete(backup, recursive: true);
+            }
+
+            return;
+        }
+
+        if (Directory.Exists(backup))
+        {
+            throw new IOException($"Resolve the interrupted plugin migration at '{backup}' before retrying.");
+        }
+
+        var staging = Path.Combine(parent, $".quantum-migration-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(staging);
+        try
+        {
+            CopyDirectory(destinationRoot, staging);
+            foreach (var source in bundledRoots.Distinct(StringComparer.Ordinal))
+            {
+                CopyDirectory(Path.GetFullPath(source), staging);
+            }
+
+            File.WriteAllText(Path.Combine(staging, ModulesCompletionFile), "1\n");
+            if (Directory.Exists(destinationRoot))
+            {
+                Directory.Move(destinationRoot, backup);
+            }
+
+            try
+            {
+                Directory.Move(staging, destinationRoot);
+            }
+            catch
+            {
+                if (Directory.Exists(backup))
+                {
+                    Directory.Move(backup, destinationRoot);
+                }
+
+                throw;
+            }
+
+            if (Directory.Exists(backup))
+            {
+                Directory.Delete(backup, recursive: true);
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(staging))
+            {
+                Directory.Delete(staging, recursive: true);
+            }
+        }
+    }
 
     public static void Migrate(string legacyRoot, string destinationRoot, string bundledModules)
     {
