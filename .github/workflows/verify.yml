@@ -31,6 +31,19 @@ jobs:
       - run: npm test
         working-directory: tests/Fixtures/Plugins/Quantum.ExampleWebPlugin
 
+  plugin-compatibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify published plugin compatibility with the actual host
+        shell: pwsh
+        run: ./.ci/Verify-PluginCompatibility.ps1
+
   macos:
     runs-on: macos-15
     strategy:
@@ -61,11 +74,11 @@ jobs:
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$bundle/Contents/Info.plist")" = io.quantum.desktop
 
   test:
-    needs: [core-tests, macos]
+    needs: [core-tests, macos, plugin-compatibility]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - run: test '${{ needs.core-tests.result }}' = success && test '${{ needs.macos.result }}' = success
+      - run: test '${{ needs.core-tests.result }}' = success && test '${{ needs.macos.result }}' = success && test '${{ needs.plugin-compatibility.result }}' = success
 
   windows:
     runs-on: windows-latest

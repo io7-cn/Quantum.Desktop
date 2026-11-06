@@ -1,0 +1,14 @@
+{
+  "Calendar": {
+    "repository": "io7-cn/Quantum.Plugin.Calendar",
+    "revision": "840440c1063d172dabeebdefc691a916add8065d"
+  },
+  "Codex": {
+    "repository": "io7-cn/Quantum.Plugin.Codex",
+    "revision": "a708026ca9c9347bf1850cfe664e661bb2d3724e"
+  },
+  "Ledger": {
+    "repository": "io7-cn/Quantum.Plugin.Ledger",
+    "revision": "439ddbcd76caf7e4dbac23c7f4324de25d3a4b88"
+  }
+}

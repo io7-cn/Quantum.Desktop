@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable><IsTestProject>true</IsTestProject>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <QuantumCodexRoot>$(MSBuildThisFileDirectory)../../.ci-dependencies/Quantum.Plugin.Codex</QuantumCodexRoot>
+    <QuantumCalendarRoot>$(MSBuildThisFileDirectory)../../.ci-dependencies/Quantum.Plugin.Calendar</QuantumCalendarRoot>
+    <QuantumLedgerRoot>$(MSBuildThisFileDirectory)../../.ci-dependencies/Quantum.Plugin.Ledger</QuantumLedgerRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Quantum/Quantum.csproj" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
+    <Using Include="Xunit" /><Using Include="Quantum.Plugin.Abstraction" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Quantum.CodexPlugin"><HintPath>$(QuantumCodexRoot)/src/Quantum.CodexPlugin/bin/$(Configuration)/net10.0/Quantum.CodexPlugin.dll</HintPath></Reference>
+    <None Include="$(QuantumCodexRoot)/src/Quantum.CodexPlugin/plugin.json" Link="plugin-manifests/codex.json" CopyToOutputDirectory="PreserveNewest" />
+    <Reference Include="Quantum.CalendarPlugin"><HintPath>$(QuantumCalendarRoot)/src/Quantum.CalendarPlugin/bin/$(Configuration)/net10.0/Quantum.CalendarPlugin.dll</HintPath></Reference>
+    <None Include="$(QuantumCalendarRoot)/src/Quantum.CalendarPlugin/plugin.json" Link="plugin-manifests/calendar.json" CopyToOutputDirectory="PreserveNewest" />
+    <Reference Include="Quantum.LedgerPlugin"><HintPath>$(QuantumLedgerRoot)/src/Quantum.LedgerPlugin/bin/$(Configuration)/net10.0/Quantum.LedgerPlugin.dll</HintPath></Reference>
+    <None Include="$(QuantumLedgerRoot)/src/Quantum.LedgerPlugin/plugin.json" Link="plugin-manifests/ledger.json" CopyToOutputDirectory="PreserveNewest" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.7" />
+    <PackageReference Include="NOF.Infrastructure.EntityFrameworkCore" Version="11.0.0-nightly.1473609.75efa591" />
+    <None Include="$(QuantumCalendarRoot)/src/Quantum.CalendarPlugin/migrations/*.sql" Link="calendar-migrations/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(QuantumLedgerRoot)/src/Quantum.LedgerPlugin/migrations/*.sql" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="CopyCalendarFixture" AfterTargets="Build">
+    <ItemGroup><Fixture Include="$(QuantumCalendarRoot)/src/Quantum.CalendarPlugin/bin/$(Configuration)/net10.0/Quantum.CalendarPlugin.dll;$(QuantumCalendarRoot)/src/Quantum.CalendarPlugin/plugin.json;$(QuantumCalendarRoot)/src/Quantum.CalendarPlugin/migrations/*.sql;$(QuantumCalendarRoot)/src/Quantum.CalendarPlugin/wwwroot/icons/plugin.ico" /></ItemGroup>
+    <Copy SourceFiles="@(Fixture)" DestinationFolder="$(TargetDir)PluginFixtures/Calendar" />
+  </Target>
+</Project>

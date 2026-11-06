@@ -54,3 +54,7 @@ python .standards/.ci/check-adoption.py
 ```
 
 同步维护两种语言。AGENTS.md 指向采用的英文入口，项目专属指令补充共享规范。
+
+## 独立插件兼容性
+
+Desktop 负责独立 Calendar、Codex、Ledger 插件的宿主边界兼容性测试。运行 `pwsh .ci/Verify-PluginCompatibility.ps1`，按 `.ci/plugin-compatibility-pins.json` 获取固定公开提交，分别构建其二进制，再对当前宿主验证能力发现、JSON 分发、持久化、移动页面和跨插件调用。忽略的 `.ci-dependencies` 仅是测试输入；应用及发布构建不依赖旧 OfficialPlugins 集合仓库或相邻源码目录。插件业务行为和发布职责仍归各自独立仓库。

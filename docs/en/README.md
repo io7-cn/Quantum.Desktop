@@ -54,3 +54,7 @@ python .standards/.ci/check-adoption.py
 ```
 
 Keep both language editions aligned. AGENTS.md links to the adopted English entry point; project-specific instructions supplement the shared requirements.
+
+## Independent plugin compatibility
+
+Desktop owns host-boundary compatibility tests for the independently maintained Calendar, Codex and Ledger plugins. Run `pwsh .ci/Verify-PluginCompatibility.ps1` to fetch exact public commits recorded in `.ci/plugin-compatibility-pins.json`, build their binaries separately and exercise discovery, JSON dispatch, persistence, mobile pages and cross-plugin calls against this host. The ignored `.ci-dependencies` checkouts are test inputs only; application and release builds do not depend on the old OfficialPlugins collection or sibling source directories. Plugin-specific behavior and release ownership remain in each plugin repository.

@@ -60,3 +60,6 @@ Thumbs.db
 
 # Python helper output
 __pycache__/
+
+# Pinned external plugin test fixtures
+/.ci-dependencies/
