@@ -13,6 +13,8 @@ Windows 安装器可能需要联网安装 WebView2 或 VC++ Runtime。
 
 ## Windows 本地数据与卸载
 
+迁移会跳过不存在的可选来源目录，包括位于重定向“下载”目录下、但实际缺失的随程序分发的 `Modules`。来源不可访问时仍会停止迁移。实际存在的来源和目标路径，以及要复制的目录内容，仍需通过符号链接和目录联接检查。
+
 Windows 将持久化状态保存在 `%LOCALAPPDATA%\io7-cn\io.quantum.desktop`，独立于默认安装目录 `%LOCALAPPDATA%\Quantum`。`Data` 包含数据库、个人插件和日志；`Settings` 包含设置和受保护的登录状态。正式构建默认使用应用数据中的插件目录，`QUANTUM_MODULES_PATH` 可指定外部目录；Debug 构建可使用随构建暂存的测试插件。
 
 首次启动前请关闭旧版 Quantum。应用会一次性复制旧 `%LOCALAPPDATA%\Quantum\io.quantum.desktop` 状态及安装目录中仍存在的 `Modules`，保留原文件及 SQLite 预写日志（WAL）中已提交的记录。冲突、路径不可访问、目录链接、数据库无效或恢复文件缺少主数据库都会停止启动；请先备份两处数据、解决报出的问题，再重试。回滚时须保留并备份新数据根目录，因为写入新记录后，旧副本会过期。已删除的数据需要通过另外保存的备份恢复。
