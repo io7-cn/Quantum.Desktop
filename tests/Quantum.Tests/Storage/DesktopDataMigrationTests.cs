@@ -131,6 +131,61 @@ public sealed class DesktopDataMigrationTests : IDisposable
         Assert.True(File.Exists(PathOf("data/.legacy-storage-v1")));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MissingOptionalSourceUnderLinkedAncestorDoesNotBlockMigration(bool modulesOnly)
+    {
+        Write("source-target/container/keep.txt", "outside the optional source");
+        Write("legacy/Data/user.txt", "saved data");
+        CreateDirectoryLink(PathOf("linked-parent"), PathOf("source-target"));
+        var missing = PathOf("linked-parent/container/optional-source");
+        try
+        {
+            if (modulesOnly)
+            {
+                Write("data/Modules/personal/data.txt", "installed plugin");
+                DesktopDataMigration.MigrateModules(PathOf("data/Modules"), missing);
+                Assert.Equal("installed plugin", Read("data/Modules/personal/data.txt"));
+                Assert.True(File.Exists(PathOf("data/Modules/.bundled-modules-v1")));
+            }
+            else
+            {
+                DesktopDataMigration.Migrate(PathOf("legacy"), PathOf("data"), missing);
+                Assert.Equal("saved data", Read("data/Data/user.txt"));
+                Assert.True(File.Exists(PathOf("data/.legacy-storage-v1")));
+            }
+
+            Assert.False(Directory.Exists(missing));
+            Assert.Equal("saved data", Read("legacy/Data/user.txt"));
+            Assert.Equal("outside the optional source", Read("source-target/container/keep.txt"));
+        }
+        finally
+        {
+            Directory.Delete(PathOf("linked-parent"));
+        }
+    }
+
+    [Fact]
+    public void ExistingOptionalSourceUnderLinkedAncestorStillStopsMigration()
+    {
+        Write("source-target/container/present-source/plugin/data.txt", "plugin data");
+        Write("legacy/Data/user.txt", "saved data");
+        CreateDirectoryLink(PathOf("linked-parent"), PathOf("source-target"));
+        try
+        {
+            Assert.Throws<IOException>(() => DesktopDataMigration.Migrate(
+                PathOf("legacy"), PathOf("data"), PathOf("linked-parent/container/present-source")));
+            Assert.False(Directory.Exists(PathOf("data")));
+            Assert.Equal("plugin data", Read("source-target/container/present-source/plugin/data.txt"));
+            Assert.Equal("saved data", Read("legacy/Data/user.txt"));
+        }
+        finally
+        {
+            Directory.Delete(PathOf("linked-parent"));
+        }
+    }
+
     [Fact]
     public void Migrate_PreservesPluginFilesNamedLikeHostDatabaseOrCache()
     {
@@ -184,6 +239,25 @@ public sealed class DesktopDataMigrationTests : IDisposable
             Directory.Delete(PathOf("legacy"));
         }
         Assert.True(Directory.Exists(PathOf("outside")));
+    }
+
+    private static void CreateDirectoryLink(string link, string target)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            using var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd.exe")
+            {
+                ArgumentList = { "/c", "mklink", "/J", link, target },
+                CreateNoWindow = true,
+                RedirectStandardOutput = true
+            })!;
+            process.WaitForExit();
+            Assert.Equal(0, process.ExitCode);
+        }
+        else
+        {
+            Directory.CreateSymbolicLink(link, target);
+        }
     }
 
     private void Migrate() => DesktopDataMigration.Migrate(PathOf("legacy"), PathOf("data"), PathOf("current/Modules"));
