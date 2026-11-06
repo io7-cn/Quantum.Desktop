@@ -131,6 +131,61 @@ public sealed class DesktopDataMigrationTests : IDisposable
         Assert.True(File.Exists(PathOf("data/.legacy-storage-v1")));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MissingOptionalSourceUnderRedirectedDirectoryDoesNotBlockMigration(bool modulesOnly)
+    {
+        Write("downloads-target/Qtm/current/keep.txt", "outside the optional source");
+        Write("legacy/Data/user.txt", "saved data");
+        CreateDirectoryLink(PathOf("downloads"), PathOf("downloads-target"));
+        var missing = PathOf("downloads/Qtm/current/Modules");
+        try
+        {
+            if (modulesOnly)
+            {
+                Write("data/Modules/personal/data.txt", "installed plugin");
+                DesktopDataMigration.MigrateModules(PathOf("data/Modules"), missing);
+                Assert.Equal("installed plugin", Read("data/Modules/personal/data.txt"));
+                Assert.True(File.Exists(PathOf("data/Modules/.bundled-modules-v1")));
+            }
+            else
+            {
+                DesktopDataMigration.Migrate(PathOf("legacy"), PathOf("data"), missing);
+                Assert.Equal("saved data", Read("data/Data/user.txt"));
+                Assert.True(File.Exists(PathOf("data/.legacy-storage-v1")));
+            }
+
+            Assert.False(Directory.Exists(missing));
+            Assert.Equal("saved data", Read("legacy/Data/user.txt"));
+            Assert.Equal("outside the optional source", Read("downloads-target/Qtm/current/keep.txt"));
+        }
+        finally
+        {
+            Directory.Delete(PathOf("downloads"));
+        }
+    }
+
+    [Fact]
+    public void ExistingOptionalSourceUnderLinkedAncestorStillStopsMigration()
+    {
+        Write("downloads-target/Qtm/current/Modules/plugin/data.txt", "plugin data");
+        Write("legacy/Data/user.txt", "saved data");
+        CreateDirectoryLink(PathOf("downloads"), PathOf("downloads-target"));
+        try
+        {
+            Assert.Throws<IOException>(() => DesktopDataMigration.Migrate(
+                PathOf("legacy"), PathOf("data"), PathOf("downloads/Qtm/current/Modules")));
+            Assert.False(Directory.Exists(PathOf("data")));
+            Assert.Equal("plugin data", Read("downloads-target/Qtm/current/Modules/plugin/data.txt"));
+            Assert.Equal("saved data", Read("legacy/Data/user.txt"));
+        }
+        finally
+        {
+            Directory.Delete(PathOf("downloads"));
+        }
+    }
+
     [Fact]
     public void Migrate_PreservesPluginFilesNamedLikeHostDatabaseOrCache()
     {
@@ -184,6 +239,25 @@ public sealed class DesktopDataMigrationTests : IDisposable
             Directory.Delete(PathOf("legacy"));
         }
         Assert.True(Directory.Exists(PathOf("outside")));
+    }
+
+    private static void CreateDirectoryLink(string link, string target)
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            using var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd.exe")
+            {
+                ArgumentList = { "/c", "mklink", "/J", link, target },
+                CreateNoWindow = true,
+                RedirectStandardOutput = true
+            })!;
+            process.WaitForExit();
+            Assert.Equal(0, process.ExitCode);
+        }
+        else
+        {
+            Directory.CreateSymbolicLink(link, target);
+        }
     }
 
     private void Migrate() => DesktopDataMigration.Migrate(PathOf("legacy"), PathOf("data"), PathOf("current/Modules"));

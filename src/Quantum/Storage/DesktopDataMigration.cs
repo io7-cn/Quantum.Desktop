@@ -132,8 +132,20 @@ internal static class DesktopDataMigration
     private static void CopyDirectory(
         string source, string destination, bool skipCache = false, bool snapshotDatabase = false)
     {
+        FileAttributes attributes;
+        try
+        {
+            // An absent optional source has no data to traverse. Unlike Directory.Exists,
+            // this probe preserves access and IO failures instead of treating them as absence.
+            attributes = File.GetAttributes(source);
+        }
+        catch (Exception exception) when (exception is FileNotFoundException or DirectoryNotFoundException)
+        {
+            return;
+        }
+
         RejectLinks(source);
-        if (!Directory.Exists(source))
+        if ((attributes & FileAttributes.Directory) == 0)
         {
             return;
         }
