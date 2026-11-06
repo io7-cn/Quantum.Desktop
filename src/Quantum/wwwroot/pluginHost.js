@@ -558,6 +558,13 @@ window.quantum.plugins = {
     }, "*");
   },
 
+  deliverExtensionSnapshot(pluginId, runtimeId, handleId, snapshotJson) {
+    const record = this.records.get(pluginId);
+    if (record && !record.disposed && record.runtimeId === runtimeId) {
+      this.post(record, "extension-snapshot", { handleId, snapshot: JSON.parse(snapshotJson) });
+    }
+  },
+
   ensureMessageListener() {
     if (this.messageListenerInstalled) {
       return;

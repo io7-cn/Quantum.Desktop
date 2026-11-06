@@ -13,4 +13,5 @@
   <data name="StartedAtArg" xml:space="preserve"><value>Started at {0}</value></data>
   <data name="LatestGreeting" xml:space="preserve"><value>Latest greeting</value></data>
   <data name="WaitingForGreeting" xml:space="preserve"><value>Waiting for a greeting</value></data>
+  <data name="SettingsContributionDescription" xml:space="preserve"><value>This section is contributed by the companion plugin to General settings.</value></data>
 </root>

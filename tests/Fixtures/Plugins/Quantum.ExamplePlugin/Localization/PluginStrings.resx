@@ -15,4 +15,9 @@
   <data name="Connections" xml:space="preserve"><value>Connections</value></data>
   <data name="WaitingForWebPlugin" xml:space="preserve"><value>Waiting for the Web plugin.</value></data>
   <data name="LastConnectionArg" xml:space="preserve"><value>Last connection: {0}</value></data>
+  <data name="ExtensionsDescription" xml:space="preserve"><value>Messages contributed by this plugin, the companion plugin and the Web example appear here.</value></data>
+  <data name="UpdateMessage" xml:space="preserve"><value>Update message</value></data>
+  <data name="WithdrawMessage" xml:space="preserve"><value>Withdraw my message</value></data>
+  <data name="RestoreMessage" xml:space="preserve"><value>Restore my message</value></data>
+  <data name="OpenSettings" xml:space="preserve"><value>Open plugin settings</value></data>
 </root>

@@ -18,7 +18,7 @@ The desktop solution restores the .NET plugin contract from NuGet. The Web fixtu
 
 Use the .NET 10 SDK and the MAUI workload for your operating system. Run `dotnet build Quantum.Desktop.slnx` from the repository root. Run `dotnet test tests/Quantum.Tests/Quantum.Tests.csproj -p:QuantumCoreOnly=true` for the plain `net10.0` tests. Native Debug builds stage the plugin fixtures in the app output. Windows Debug uses the self-contained Windows App SDK.
 
-The plugins under `tests/Fixtures/Plugins/` are fixed host test fixtures derived from the [SDK examples](https://github.com/io7-cn/Quantum.Sdk/tree/v0.3.0-rc.2/samples). Build the optional Web fixture with `npm ci` and `npm test` in its project directory to include it in a native Debug build.
+The plugins under `tests/Fixtures/Plugins/` are fixed host test fixtures derived from the [SDK examples](https://github.com/io7-cn/Quantum.Sdk/tree/v0.3.0-rc.3/samples). Build the optional Web fixture with `npm ci` and `npm test` in its project directory to include it in a native Debug build.
 
 Logs go to `Logs/quantum-YYYYMMDD-HHmmss-PID-SEGMENT.log` under application data, with a 20 MiB threshold per segment. The file writer rolls before a new entry would exceed the threshold and keeps a single oversized entry intact. Pass `--console` to also see logs in the terminal. With `dotnet run`, append `-- --console` to the launch command.
 
@@ -26,7 +26,7 @@ On Windows, application data is `%LOCALAPPDATA%\io7-cn\io.quantum.desktop\Data`,
 
 On macOS, data and personal plugins live in the user's Library directory outside `Quantum.app`. See [macOS migration and uninstall choices](desktop-releases.md#local-data-and-uninstalling-on-macos).
 
-See [Login sessions](login-sessions.md), [Architecture](architecture.md), [Desktop releases](desktop-releases.md), the [.NET plugin guide](plugin-development.md), the [TypeScript plugin guide](web-plugin-development.md) and [Contributing](CONTRIBUTING.md). Licensed under [Apache License 2.0](../../LICENSE).
+See [Login sessions](login-sessions.md), [Architecture](architecture.md), [Runtime extensions](extensions.md), [Desktop releases](desktop-releases.md), the [.NET plugin guide](plugin-development.md), the [TypeScript plugin guide](web-plugin-development.md) and [Contributing](CONTRIBUTING.md). Licensed under [Apache License 2.0](../../LICENSE).
 
 ## Launch commands
 

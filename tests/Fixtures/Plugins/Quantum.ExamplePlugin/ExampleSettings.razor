@@ -1,0 +1,78 @@
+@namespace Quantum.ExamplePlugin
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+@using Quantum.Plugin.Abstraction
+@using Microsoft.Extensions.Localization
+@using Quantum.ExamplePlugin.Localization
+@using System.Globalization
+@using System.Text.Json
+@implements IDisposable
+@inject IStringLocalizer<PluginStrings> L
+
+<p>@L["ExtensionsDescription"]</p>
+<div>
+    <button type="button" class="secondary-button" disabled="@(!_example.HasMessage)" @onclick="_example.UpdateMessage">@L["UpdateMessage"]</button>
+    <button type="button" class="secondary-button" @onclick="_example.ToggleMessage">@L[_example.HasMessage ? "WithdrawMessage" : "RestoreMessage"]</button>
+</div>
+<ul aria-live="polite">
+    @foreach (var contribution in _snapshot?.Contributions ?? [])
+    {
+        @if (ReadMessage(contribution.Value) is { } message)
+        {
+            <li><strong>@contribution.PluginId</strong>: @message</li>
+        }
+    }
+</ul>
+
+@code {
+    private readonly IQuantumExtensions _extensions;
+    private readonly ExampleExtensions _example;
+
+    public ExampleSettings(IQuantumExtensions extensions, ExampleExtensions example)
+    {
+        _extensions = extensions;
+        _example = example;
+    }
+
+    private QuantumExtensionSnapshot? _snapshot;
+    private IDisposable? _observation;
+    private bool _disposed;
+
+    private static string? ReadMessage(JsonElement value)
+    {
+        if (value.ValueKind != JsonValueKind.Object
+            || !value.TryGetProperty("message", out var message) || message.ValueKind != JsonValueKind.String)
+        {
+            return null;
+        }
+
+        var field = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "zh" ? "messageZh" : "message";
+        if (value.TryGetProperty(field, out var localized) && localized.ValueKind == JsonValueKind.String)
+        {
+            return localized.GetString();
+        }
+
+        return message.GetString();
+    }
+
+    protected override void OnInitialized()
+    {
+        _observation = _extensions.Observe("quantum.plugin.example/example-data", 1, snapshot =>
+        {
+            _ = InvokeAsync(() =>
+            {
+                if (!_disposed)
+                {
+                    _snapshot = snapshot;
+                    StateHasChanged();
+                }
+            });
+        });
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        _observation?.Dispose();
+    }
+}

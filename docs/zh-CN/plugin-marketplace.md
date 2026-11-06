@@ -10,7 +10,7 @@ Quantum 桌面端通过独立部署的 Quantum Platform 浏览和安装已审核
 
 ```powershell
 $env:QUANTUM_PLATFORM_URL = "https://plugins.example.com"
-$env:QUANTUM_SDK_VERSION = "0.3.0-rc.2"
+$env:QUANTUM_SDK_VERSION = "0.3.0-rc.3"
 ```
 
 `QUANTUM_PLATFORM_URL` 仅接受绝对 HTTP 或 HTTPS 地址；无效值会回退到默认平台地址。默认从已加载的 `Quantum.Plugin.Abstraction` 程序集读取 SDK 信息版本，保留预发布标识并去掉构建元数据。`QUANTUM_SDK_VERSION` 仅用于测试覆盖；Desktop 应用版本与 `QUANTUM_VERSION` 不参与插件兼容判断。
@@ -43,4 +43,4 @@ Quantum Platform 网页发布台位于平台地址的 `/portal/`：
 - Reviewer 或 Admin 在审核工作台发布或拒绝版本；
 - SMTP 启用时，注册欢迎和审核结果由 MailKit 发送。
 
-新版本使用 `quantum-cli plugins publish ./dist/plugin --sdk-version-support "0.3.0-rc.2"` 发布。.NET 和 Web SDK 包共享 SDK 发布版本。先部署新版 Platform 及其增量数据库迁移，再升级 Desktop 或发布 CLI。历史发布记录保留原宿主范围；要供按 SDK 版本检查的客户端安装，应递增插件版本并明确声明 SDK 范围。
+新版本使用 `quantum-cli plugins publish ./dist/plugin --sdk-version-support "0.3.0-rc.3"` 发布。.NET 和 Web SDK 包共享 SDK 发布版本。先部署新版 Platform 及其增量数据库迁移，再升级 Desktop 或发布 CLI。历史发布记录保留原宿主范围；要供按 SDK 版本检查的客户端安装，应递增插件版本并明确声明 SDK 范围。

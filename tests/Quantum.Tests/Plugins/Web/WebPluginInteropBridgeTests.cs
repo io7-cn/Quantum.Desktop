@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -7,11 +6,100 @@ using NOF.Application;
 using NOF.Contract;
 using Quantum.Plugins;
 using Quantum.WebPlugins;
+using System.Text.Json;
 
 namespace Quantum.Tests;
 
 public sealed class WebPluginInteropBridgeTests
 {
+    [Fact]
+    public async Task ExtensionsBridgeRegistersUpdatesObservesAndReleasesRuntimeOwnedHandles()
+    {
+        await using var host = CreateHost();
+        var catalog = new PluginCatalog([]);
+        var runtimeId = Guid.NewGuid();
+        var template = LoadedWebPlugin(runtimeId);
+        var scope = catalog.Extensions.CreateScope(PluginId, runtimeId);
+        var plugin = new LoadedPlugin(template.Manifest, template.RootPath, null, [], runtimeId)
+        {
+            Extensions = scope
+        };
+        catalog.Replace([plugin]);
+        using var router = new PluginRpcRouter(catalog);
+        var javaScript = new ExtensionDeliveryJavaScriptRuntime();
+        using var bridge = CreateBridge(catalog, router, host, javaScript);
+        await Call("define", new { handleId = "point", localId = "actions", contractVersion = 1 });
+        await Call("register", new
+        {
+            handleId = "value",
+            localId = "entry",
+            pointId = PluginId + "/actions",
+            contractVersion = 1,
+            valueJson = "{\"label\":\"before\"}"
+        });
+        await Call("observe", new { handleId = "watch", pointId = PluginId + "/actions", contractVersion = 1 });
+        Assert.Equal("before", Assert.Single(javaScript.Latest!.Contributions).Value.GetProperty("label").GetString());
+        await Call("update", new { handleId = "value", valueJson = "{\"label\":\"after\"}" });
+        Assert.Equal("after", Assert.Single(javaScript.Latest!.Contributions).Value.GetProperty("label").GetString());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => bridge.InvokeAsync(PluginId, Guid.NewGuid().ToString("N"),
+            "stale", "extensions", "dispose", JsonSerializer.SerializeToElement(new { handleId = "value" })));
+        await bridge.ReleaseRuntimeAsync(PluginId, runtimeId.ToString("N"));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => Call("update", new { handleId = "value", valueJson = "1" }));
+        // The same runtime can activate a fresh frame after release.
+        await Call("define", new { handleId = "point", localId = "actions", contractVersion = 1 });
+
+        Task<JsonElement> Call(string method, object arguments) => bridge.InvokeAsync(PluginId, runtimeId.ToString("N"),
+            Guid.NewGuid().ToString("N"), "extensions", method, JsonSerializer.SerializeToElement(arguments));
+    }
+
+    [Fact]
+    public async Task MaximumDepthExtensionPayloadSurvivesBothInteropEnvelopes()
+    {
+        await using var host = CreateHost();
+        var catalog = new PluginCatalog([]);
+        var runtimeId = Guid.NewGuid();
+        var template = LoadedWebPlugin(runtimeId);
+        var scope = catalog.Extensions.CreateScope(PluginId, runtimeId);
+        catalog.Replace([new LoadedPlugin(template.Manifest, template.RootPath, null, [], runtimeId) { Extensions = scope }]);
+        using var router = new PluginRpcRouter(catalog);
+        var javaScript = new ExtensionDeliveryJavaScriptRuntime();
+        using var bridge = CreateBridge(catalog, router, host, javaScript);
+        var json = new string('[', 64) + "0" + new string(']', 64);
+        await Call("define", new { handleId = "point", localId = "actions", contractVersion = 1 });
+        await Call("register", new
+        {
+            handleId = "value",
+            localId = "entry",
+            pointId = PluginId + "/actions",
+            contractVersion = 1,
+            valueJson = json
+        });
+        await Call("observe", new { handleId = "watch", pointId = PluginId + "/actions", contractVersion = 1 });
+        Assert.Equal(json, Assert.Single(javaScript.Latest!.Contributions).Value.GetRawText());
+        await Assert.ThrowsAnyAsync<JsonException>(() => Call("update", new { handleId = "value", valueJson = "[" + json + "]" }));
+        await Assert.ThrowsAsync<ArgumentException>(() => Call("update", new { handleId = "value", valueJson = JsonSerializer.Serialize(new string('x', 131072)) }));
+        Assert.Equal(json, Assert.Single(javaScript.Latest.Contributions).Value.GetRawText());
+
+        Task<JsonElement> Call(string method, object arguments) => bridge.InvokeAsync(PluginId, runtimeId.ToString("N"),
+            Guid.NewGuid().ToString("N"), "extensions", method, JsonSerializer.SerializeToElement(arguments));
+    }
+
+    private sealed class ExtensionDeliveryJavaScriptRuntime : IJSRuntime
+    {
+        public Quantum.Plugin.Abstraction.QuantumExtensionSnapshot? Latest { get; private set; }
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args)
+            => InvokeAsync<TValue>(identifier, CancellationToken.None, args);
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
+        {
+            Assert.Equal("quantum.plugins.deliverExtensionSnapshot", identifier);
+            // The real JS interop envelope must be shallow even for a maximum-depth payload.
+            JsonSerializer.Serialize(args);
+            Latest = JsonSerializer.Deserialize<Quantum.Plugin.Abstraction.QuantumExtensionSnapshot>(
+                Assert.IsType<string>(args![3]), new JsonSerializerOptions(JsonSerializerDefaults.Web) { MaxDepth = 128 });
+            return ValueTask.FromResult(default(TValue)!);
+        }
+    }
+
     [Fact]
     public async Task MobileDeclarationsAreOwnedByWebRuntimeAndReleasedWithIt()
     {

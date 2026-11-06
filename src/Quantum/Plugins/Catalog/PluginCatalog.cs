@@ -17,9 +17,13 @@ public sealed class PluginCatalog : IQuantumPluginEnvironment
     {
         _logger = logger ?? NullLogger.Instance;
         _snapshot = CreateSnapshot(plugins, failures ?? [], revision: 0);
+        Extensions = new PluginExtensionRegistry(this, _logger);
+        SettingsContributions.Install(Extensions);
     }
 
     public event EventHandler? Changed;
+
+    internal PluginExtensionRegistry Extensions { get; }
 
     public IReadOnlyList<LoadedPlugin> Plugins => Snapshot.Plugins;
 
@@ -196,6 +200,8 @@ public sealed class LoadedPlugin
     internal PluginRpcRuntime? RpcRuntime { get; init; }
 
     internal Quantum.Mobile.MobilePagePublisher MobilePages { get; init; } = new();
+
+    internal PluginExtensionScope? Extensions { get; init; }
 }
 
 public sealed record PluginGlobalComponentRegistration(

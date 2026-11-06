@@ -1,0 +1,16 @@
+@namespace Quantum.ExampleDependentPlugin
+@using Microsoft.Extensions.Localization
+@using Quantum.ExampleDependentPlugin.Localization
+@inject IStringLocalizer<PluginStrings> L
+
+<p>@L["SettingsContributionDescription"]</p>
+<p>@(_state.Greeting ?? L["WaitingForGreeting"].Value)</p>
+
+@code {
+    private readonly DependentPluginState _state;
+
+    public DependentSettings(DependentPluginState state)
+    {
+        _state = state;
+    }
+}

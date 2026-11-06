@@ -8,7 +8,7 @@ Expose any capability that Quantum, other plugins or AI tools must discover and 
 
 ## 1. Create a project
 
-Use a Razor class library targeting `net10.0`. Reference the published `Quantum.Plugin.Abstraction` package for the host's assembly-level compatibility boundary and the NOF packages you use. Set compatible versions in the project or central package file. Copy `plugin.json`, `wwwroot` and any numbered SQL migrations to the build output. Use the [SDK's example plugin](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.2/samples/Quantum.ExamplePlugin/Quantum.ExamplePlugin.csproj) as a working template. Keep the host and its internal assemblies out of plugin packages.
+Use a Razor class library targeting `net10.0`. Reference the published `Quantum.Plugin.Abstraction` package for the host's assembly-level compatibility boundary and the NOF packages you use. Set compatible versions in the project or central package file. Copy `plugin.json`, `wwwroot` and any numbered SQL migrations to the build output. Use the [SDK's example plugin](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.3/samples/Quantum.ExamplePlugin/Quantum.ExamplePlugin.csproj) as a working template. Keep the host and its internal assemblies out of plugin packages.
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk.Razor">
@@ -19,7 +19,7 @@ Use a Razor class library targeting `net10.0`. Reference the published `Quantum.
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Quantum.Plugin.Abstraction" Version="0.3.0-rc.2" />
+    <PackageReference Include="Quantum.Plugin.Abstraction" Version="0.3.0-rc.3" />
     <PackageReference Include="NOF.Abstraction" />
     <PackageReference Include="NOF.Application" />
     <PackageReference Include="NOF.Contract" />
@@ -35,7 +35,7 @@ Use a Razor class library targeting `net10.0`. Reference the published `Quantum.
 
 ## 2. Define the manifest and RPC contract
 
-Declare the plugin ID, full semantic version, entry assembly and routes in `plugin.json`. Supply optional localized titles and set `showInNavigation` to false for routes that should open by path but stay out of the menu. IDs are limited to 128 characters. Use `versionRange` for dependencies and integrations. See the [dependent SDK example](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.2/samples/Quantum.ExampleDependentPlugin/plugin.json).
+Declare the plugin ID, full semantic version, entry assembly and routes in `plugin.json`. Supply optional localized titles and set `showInNavigation` to false for routes that should open by path but stay out of the menu. IDs are limited to 128 characters. Use `versionRange` for dependencies and integrations. See the [dependent SDK example](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.3/samples/Quantum.ExampleDependentPlugin/plugin.json).
 
 - `dependencies` require a compatible plugin and establish startup order. A missing provider, incompatible version or hard cycle blocks affected plugins.
 - `integrations` prefer compatible providers to start first. Missing targets and soft cycles still allow startup. Use `IQuantumPluginEnvironment` to decide whether to enable integration code.
@@ -215,7 +215,7 @@ Dispose the subscription when the plugin stops. The host also releases it with t
 
 ### Request and Notify capabilities
 
-Declare Request handlers with [RequestCapability] and choose All or Ordered in the contract. The host calls each handler through NOF in its own scope. An Ordered write may require a unique owner. Notify uses NOF in-memory event delivery and supports the same All and Ordered policies. The [SDK capability guide](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.2/docs/en/dotnet-plugin-development.md) describes discovery, ownership and propagation.
+Declare Request handlers with [RequestCapability] and choose All or Ordered in the contract. The host calls each handler through NOF in its own scope. An Ordered write may require a unique owner. Notify uses NOF in-memory event delivery and supports the same All and Ordered policies. The [SDK capability guide](https://github.com/io7-cn/Quantum.Sdk/blob/v0.3.0-rc.3/docs/en/dotnet-plugin-development.md) describes discovery, ownership and propagation.
 
 ## 5. Provide pages and translations
 

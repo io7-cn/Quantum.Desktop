@@ -246,6 +246,7 @@ internal sealed class PluginRuntime
         if (failures.Count == 0)
         {
             _eventBus?.Pause();
+            LoadedPlugin.Extensions?.Clear();
         }
 
         return failures;
@@ -264,6 +265,7 @@ internal sealed class PluginRuntime
             Candidate.Manifest.Id,
             LoadedPlugin.RuntimeId);
         await StopAsync(CancellationToken.None).ConfigureAwait(false);
+        LoadedPlugin.Extensions?.Dispose();
         try
         {
             try
@@ -338,8 +340,10 @@ internal sealed class PluginRuntime
         PluginRpcSerializer? rpcSerializer = null;
         PluginRpcInvoker? rpcInvoker = null;
         PluginRpcRuntime? rpcRuntime = null;
+        PluginExtensionScope? extensions = null;
         try
         {
+            extensions = catalog.Extensions.CreateScope(candidate.Manifest.Id, runtimeId);
             if (candidate.Manifest.Runtime.Kind == PluginRuntimeKind.Web)
             {
                 var entryModulePath = Path.Combine(
@@ -362,7 +366,10 @@ internal sealed class PluginRuntime
                     entryAssembly: null,
                     routes: webRoutes,
                     runtimeId: runtimeId,
-                    services: null);
+                    services: null)
+                {
+                    Extensions = extensions
+                };
                 logger.LogInformation(
                     "Prepared Web plugin {PluginId} runtime {RuntimeId}; entry module: {EntryModule}; "
                     + "route count: {RouteCount}.",
@@ -425,6 +432,7 @@ internal sealed class PluginRuntime
             serviceCollection.AddSingleton<IQuantumRequester>(rpcInvoker);
             var mobilePages = new Quantum.Mobile.MobilePagePublisher();
             serviceCollection.AddSingleton<IQuantumMobilePages>(mobilePages);
+            serviceCollection.AddSingleton<IQuantumExtensions>(extensions);
 
             CopyHostService<ILoggerFactory>(hostServices, serviceCollection);
             serviceCollection.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
@@ -465,7 +473,8 @@ internal sealed class PluginRuntime
                 globalComponents)
             {
                 RpcRuntime = rpcRuntime,
-                MobilePages = mobilePages
+                MobilePages = mobilePages,
+                Extensions = extensions
             };
             logger.LogInformation(
                 "Prepared .NET plugin {PluginId} runtime {RuntimeId}; assembly: {EntryAssembly}; "
@@ -495,6 +504,7 @@ internal sealed class PluginRuntime
         }
         catch
         {
+            extensions?.Dispose();
             try
             {
                 if (rpcRuntime is not null)

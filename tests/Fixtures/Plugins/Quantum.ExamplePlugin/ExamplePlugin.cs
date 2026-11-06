@@ -13,6 +13,7 @@ public sealed class ExamplePlugin : IQuantumPlugin
     public static void ConfigureServices(IServiceCollection services)
     {
         services.AddSingleton<ExamplePluginState>();
+        services.AddSingleton<ExampleExtensions>();
     }
 
     public static Task StartAsync(
@@ -38,6 +39,8 @@ public sealed class ExamplePlugin : IQuantumPlugin
                 MobileUi.Text("description", "This button invokes the existing desktop plugin RPC."),
                 MobileUi.Button("greet", "Say hello").OnClick(MobileUi.Request("example.greet")))));
 
+        services.GetRequiredService<ExampleExtensions>().Start();
+
         return Task.CompletedTask;
     }
 
@@ -46,6 +49,7 @@ public sealed class ExamplePlugin : IQuantumPlugin
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        services.GetRequiredService<ExampleExtensions>().Stop();
         services.GetRequiredService<ExamplePluginState>().Stop();
         services.GetRequiredService<IQuantumMobilePages>().Remove("hello");
         return Task.CompletedTask;
