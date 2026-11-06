@@ -157,17 +157,6 @@ a {
   margin-top: auto;
 }
 
-.settings-nav-item {
-  flex: 0 0 auto;
-  margin-top: 4px;
-  background: transparent;
-}
-
-.settings-gear {
-  font-size: 19px;
-  line-height: 1;
-}
-
 .developer-toolbar {
   align-items: center;
   background: linear-gradient(135deg, #f0edff, #faf9ff 62%, #edf7ff);
