@@ -8,7 +8,7 @@ Download a build for your operating system from [GitHub Releases](https://github
 
 ## Local data and uninstalling on Windows
 
-Migration ignores optional source directories that are absent, including a missing bundled `Modules` directory under a redirected Downloads folder. An inaccessible source still stops migration. Existing source and destination paths, and entries copied from them, remain subject to the link and junction checks.
+Migration ignores optional source directories that are absent, even when an ancestor is a symbolic link or junction. An inaccessible source still stops migration. Existing source and destination paths, and entries copied from them, remain subject to the link and junction checks.
 
 Windows stores persistent state under `%LOCALAPPDATA%\io7-cn\io.quantum.desktop`, outside the default installation directory `%LOCALAPPDATA%\Quantum`. `Data` contains databases, personal plugins and logs; `Settings` contains preferences and protected sign-in state. Release builds use application data for plugins unless `QUANTUM_MODULES_PATH` is set; Debug builds may use bundled fixtures.
 

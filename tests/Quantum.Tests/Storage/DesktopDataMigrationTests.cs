@@ -134,12 +134,12 @@ public sealed class DesktopDataMigrationTests : IDisposable
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void MissingOptionalSourceUnderRedirectedDirectoryDoesNotBlockMigration(bool modulesOnly)
+    public void MissingOptionalSourceUnderLinkedAncestorDoesNotBlockMigration(bool modulesOnly)
     {
-        Write("downloads-target/Qtm/current/keep.txt", "outside the optional source");
+        Write("source-target/container/keep.txt", "outside the optional source");
         Write("legacy/Data/user.txt", "saved data");
-        CreateDirectoryLink(PathOf("downloads"), PathOf("downloads-target"));
-        var missing = PathOf("downloads/Qtm/current/Modules");
+        CreateDirectoryLink(PathOf("linked-parent"), PathOf("source-target"));
+        var missing = PathOf("linked-parent/container/optional-source");
         try
         {
             if (modulesOnly)
@@ -158,31 +158,31 @@ public sealed class DesktopDataMigrationTests : IDisposable
 
             Assert.False(Directory.Exists(missing));
             Assert.Equal("saved data", Read("legacy/Data/user.txt"));
-            Assert.Equal("outside the optional source", Read("downloads-target/Qtm/current/keep.txt"));
+            Assert.Equal("outside the optional source", Read("source-target/container/keep.txt"));
         }
         finally
         {
-            Directory.Delete(PathOf("downloads"));
+            Directory.Delete(PathOf("linked-parent"));
         }
     }
 
     [Fact]
     public void ExistingOptionalSourceUnderLinkedAncestorStillStopsMigration()
     {
-        Write("downloads-target/Qtm/current/Modules/plugin/data.txt", "plugin data");
+        Write("source-target/container/present-source/plugin/data.txt", "plugin data");
         Write("legacy/Data/user.txt", "saved data");
-        CreateDirectoryLink(PathOf("downloads"), PathOf("downloads-target"));
+        CreateDirectoryLink(PathOf("linked-parent"), PathOf("source-target"));
         try
         {
             Assert.Throws<IOException>(() => DesktopDataMigration.Migrate(
-                PathOf("legacy"), PathOf("data"), PathOf("downloads/Qtm/current/Modules")));
+                PathOf("legacy"), PathOf("data"), PathOf("linked-parent/container/present-source")));
             Assert.False(Directory.Exists(PathOf("data")));
-            Assert.Equal("plugin data", Read("downloads-target/Qtm/current/Modules/plugin/data.txt"));
+            Assert.Equal("plugin data", Read("source-target/container/present-source/plugin/data.txt"));
             Assert.Equal("saved data", Read("legacy/Data/user.txt"));
         }
         finally
         {
-            Directory.Delete(PathOf("downloads"));
+            Directory.Delete(PathOf("linked-parent"));
         }
     }
 
