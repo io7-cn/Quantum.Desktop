@@ -1,5 +1,5 @@
 $ErrorActionPreference = 'Stop'
-. "$PSScriptRoot/../../src/Quantum/Platforms/Windows/Uninstall.ps1"
+. "$PSScriptRoot/../../../../src/Quantum/Platforms/Windows/Uninstall.ps1"
 
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ("quantum-uninstall-tests-" + [guid]::NewGuid().ToString('N'))
 $testRoot = [IO.Path]::GetFullPath($testRoot)

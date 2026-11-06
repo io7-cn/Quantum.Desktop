@@ -2,9 +2,7 @@
 
 [English](../en/architecture.md)
 
-架构决策：[0001 — 分离 Windows 用户数据与安装目录](decisions/0001-windows-data.md)。
-
-Windows 存储迁移先于 MAUI 设置和安全存储初始化执行。Windows manifest 的发布者路径分量 `io7-cn` 将 MAUI 数据根目录放在 Velopack 默认的 `Quantum` 安装根目录之外。`Storage/DesktopDataMigration` 暂存完整副本，通过 SQLite 备份 API 取得一致快照，再以原子目录切换和完成标记提交；失败则停止启动。正式构建将个人插件安装到应用数据目录。Windows 卸载包装器在有超时的 Velopack 钩子之外收集默认保留的选择，仅在卸载成功后清除固定的应用自有目录。参见[安装与恢复行为](desktop-releases.md#windows-本地数据与卸载)。
+Windows 存储迁移在 MAUI 初始化设置或安全存储前完成：暂存完整副本及 SQLite 备份，以原子目录切换提交，失败则停止启动。参见[存储设计决策](decisions/0001-windows-data.md)及[安装与恢复行为](desktop-releases.md#windows-本地数据与卸载)。
 
 ## 组件结构
 

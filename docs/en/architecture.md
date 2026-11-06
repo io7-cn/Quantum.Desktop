@@ -15,9 +15,7 @@ The host groups source by technical responsibility. `Shell` contains startup and
 
 ## Data and calls
 
-Decision: [0001 — Separate Windows user data from installation](decisions/0001-windows-data.md).
-
-Windows storage migration runs before MAUI initializes preferences or secure storage. The Windows manifest's publisher component `io7-cn` places the MAUI data root outside Velopack's default `Quantum` installation root. `Storage/DesktopDataMigration` stages a complete copy, snapshots SQLite through its backup API and atomically publishes it with a completion marker; failures stop startup. Release plugin installs use application data. The Windows uninstall wrapper collects a default-preserve choice outside timed Velopack hooks and clears only fixed app-owned roots after a successful uninstall. See [installation and recovery behavior](desktop-releases.md#local-data-and-uninstalling-on-windows).
+Windows storage migration completes before MAUI initializes preferences or secure storage. It stages a complete copy with a SQLite backup, publishes the directory atomically and stops startup on failure. See the [storage decision](decisions/0001-windows-data.md) and [installation and recovery behavior](desktop-releases.md#local-data-and-uninstalling-on-windows).
 
 Both runtimes ship append-only numbered SQLite migrations in `database.migrations`. The host verifies the applied SHA-256 history in `__quantum_plugin_migrations` and applies each plugin's pending scripts in a transaction before startup. Scripts leave transaction control to the host. A committed migration survives runtime rollback, so use backward-compatible database changes.
 
