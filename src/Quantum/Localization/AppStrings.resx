@@ -337,4 +337,5 @@
   <data name="UninstallMacDescription" xml:space="preserve"><value>Move Quantum to Trash and choose whether to keep local data. Removing the app directly in Finder keeps data without a prompt.</value></data>
   <data name="UninstallUpdateBusy" xml:space="preserve"><value>Wait for the current update to finish before uninstalling.</value></data>
   <data name="UninstallFailedArg" xml:space="preserve"><value>Uninstall did not complete: {0}. Quit Quantum before retrying.</value></data>
+  <data name="UninstallKeychainFailedArg" xml:space="preserve"><value>Could not clear Quantum sign-in state: {0}.</value></data>
 </root>

@@ -4,6 +4,7 @@ using Quantum.Localization;
 using Quantum.Plugins;
 using Quantum.Storage;
 using Quantum.Updates;
+using Security;
 
 namespace Quantum;
 
@@ -82,9 +83,19 @@ internal sealed class MacAppUninstallService(
             await plugins.DisposeAsync();
             if (removeData)
             {
+                // MAUI 10.0.20 RemoveAll discards the Keychain status; require a confirmed removal.
+                using var query = new SecRecord(SecKind.GenericPassword)
+                {
+                    Service = $"{AppInfo.Current.PackageName}.microsoft.maui.essentials.preferences"
+                };
+                var status = SecKeyChain.Remove(query);
+                if (status is not (SecStatusCode.Success or SecStatusCode.ItemNotFound))
+                {
+                    throw new IOException(AppText.Get("UninstallKeychainFailedArg", status));
+                }
+
                 await Task.Run(() => MacLocalData.Clear(FileSystem.AppDataDirectory, FileSystem.CacheDirectory));
                 NSUserDefaults.StandardUserDefaults.RemovePersistentDomain("io.quantum.desktop");
-                SecureStorage.Default.RemoveAll();
             }
 
             Application.Current!.Quit();

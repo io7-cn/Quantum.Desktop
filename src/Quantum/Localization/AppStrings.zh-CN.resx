@@ -337,4 +337,5 @@
   <data name="UninstallMacDescription" xml:space="preserve"><value>将 Quantum 移入废纸篓，并选择是否保留本地数据。直接从 Finder 移除应用会保留数据，不会弹出选择。</value></data>
   <data name="UninstallUpdateBusy" xml:space="preserve"><value>请等待当前更新完成后再卸载。</value></data>
   <data name="UninstallFailedArg" xml:space="preserve"><value>卸载未完成：{0}。请退出 Quantum 后再重试。</value></data>
+  <data name="UninstallKeychainFailedArg" xml:space="preserve"><value>无法清除 Quantum 登录状态：{0}。</value></data>
 </root>
