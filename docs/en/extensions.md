@@ -2,7 +2,7 @@
 
 [简体中文](../zh-CN/extensions.md)
 
-Desktop consumes the SDK `0.3.0-rc.3` candidate's code-defined, type-independent JSON extension protocol. The host registry lives under `Plugins/Extensions`; it does not interpret business payloads. Plugins define and observe their own points through `IQuantumExtensions` or `context.extensions`, with no additional `plugin.json` fields. Definitions and contributions are owned by runtime generations, and only committed catalog generations are visible. Payloads are detached JSON and revisions are session-local ordering tokens. The settings module defines its own contract below; other consumers can define different JSON contracts.
+Desktop implements the SDK’s code-defined, type-independent JSON extension protocol. The host registry lives under `Plugins/Extensions`; it does not interpret business payloads. Plugins define and observe their own points through `IQuantumExtensions` or `context.extensions`, with no additional `plugin.json` fields. Definitions and contributions are owned by runtime generations, and only committed catalog generations are visible. Payloads are detached JSON and revisions are session-local ordering tokens. The settings module defines its own contract below; other consumers can define different JSON contracts.
 
 ## Settings view contract, version 1
 
@@ -26,12 +26,14 @@ Account services use the same view contributions as other sections. The componen
 
 Settings tab links use `/settings?section=<plugin-id/local-id>`; existing `section=account`, `section=plugins` and `#account` links remain supported. When the selected contribution disappears the UI returns to General. .NET components receive their plugin service container through the existing activator; Web views use the existing sandboxed iframe and route/view mount contract. Locale changes remount views. The Web runtime currently hosts one mounted view per plugin at a time; multiple contributions from the same Web plugin must be selected rather than simultaneously mounted.
 
-## Candidate verification
+## Integration verification
 
-The SDK and Desktop remain independent repositories. Build the candidate NuGet package from the SDK repository using its documented package flow, then restore Desktop with `-p:RestoreAdditionalProjectSources=<candidate-package-directory>`. Desktop pins the exact candidate version; do not substitute sibling source references. This candidate is not a published SDK release. Publish approved package artifacts before merging a consumer that must restore from the public feed.
+The SDK and Desktop remain independent repositories. Desktop pins its SDK package version. To test a locally built package, restore with `-p:RestoreAdditionalProjectSources=<package-directory>`; do not substitute sibling source references.
 
 Validate SDK contracts, the Desktop .NET tests, `node --test tests/web-plugin-host.test.mjs`, and the native Windows build. macOS iframe rendering requires separate platform validation.
 
 ## Manual visual review
 
-Run the native Debug host with its .NET example fixture. Open Settings: the Example plugin tab should appear alongside the three built-in tabs and display the custom-point message. Verify keyboard navigation and wrapped tabs at a narrow window width. Open the example tab and reload or disable the plugin from Plugin management; the entry should update or disappear without retaining old content. Add two Web view contributions from one plugin to an existing page and verify their selector switches the single iframe. Windows build and HTML rendering tests do not replace this native visual check.
+Run the native Debug host with the main and companion .NET fixtures. Open Settings → Example plugin: both plugins' messages should appear. Update, withdraw and restore the main message; the companion message remains. General settings includes the companion's section. Disable the companion plugin and verify both of its contributions disappear; re-enable it to restore them. With the SDK Web example installed, update its message from the Web example tab and verify the main example tab reflects the change.
+
+Verify keyboard navigation and wrapped tabs at a narrow window width. Reload the main plugin while its tab is selected and check that only the current runtime's content remains. The SDK's `docs/en/extensions.md` describes the complete sample walkthrough and source files.

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Quantum.Plugin.Abstraction;
 using MobileUi = Quantum.Plugin.Abstraction.Mobile;
@@ -14,6 +13,7 @@ public sealed class ExamplePlugin : IQuantumPlugin
     public static void ConfigureServices(IServiceCollection services)
     {
         services.AddSingleton<ExamplePluginState>();
+        services.AddSingleton<ExampleExtensions>();
     }
 
     public static Task StartAsync(
@@ -39,19 +39,7 @@ public sealed class ExamplePlugin : IQuantumPlugin
                 MobileUi.Text("description", "This button invokes the existing desktop plugin RPC."),
                 MobileUi.Button("greet", "Say hello").OnClick(MobileUi.Request("example.greet")))));
 
-        var extensions = services.GetRequiredService<IQuantumExtensions>();
-        // Definitions and contributions are runtime-owned and require no manifest declarations.
-        extensions.Define("example-data", 1);
-        using var message = JsonDocument.Parse("""{"message":"Hello from an extension"}""");
-        extensions.Register("quantum.plugin.example/example-data", 1, "message", message.RootElement);
-        using var page = JsonDocument.Parse("""
-            {
-              "title": "Example plugin",
-              "titles": { "zh-CN": "示例插件" },
-              "component": "Quantum.ExamplePlugin.ExampleSettings"
-            }
-            """);
-        extensions.Register("quantum.settings/pages", 1, "example-settings", page.RootElement);
+        services.GetRequiredService<ExampleExtensions>().Start();
 
         return Task.CompletedTask;
     }
@@ -61,6 +49,7 @@ public sealed class ExamplePlugin : IQuantumPlugin
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        services.GetRequiredService<ExampleExtensions>().Stop();
         services.GetRequiredService<ExamplePluginState>().Stop();
         services.GetRequiredService<IQuantumMobilePages>().Remove("hello");
         return Task.CompletedTask;

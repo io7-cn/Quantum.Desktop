@@ -33,7 +33,8 @@ public sealed class DependentPlugin : IQuantumPlugin
 
         services.GetRequiredService<DependentPluginState>().Start(
             DateTimeOffset.Now,
-            greetingResult.Value);
+            greetingResult.Value,
+            services.GetRequiredService<IQuantumExtensions>());
     }
 
     public static Task StopAsync(

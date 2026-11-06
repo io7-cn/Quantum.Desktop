@@ -2,7 +2,7 @@
 
 [English](../en/extensions.md)
 
-Desktop 使用 SDK `0.3.0-rc.3` 候选版本通过代码定义、无业务类型依赖的 JSON 扩展协议。宿主注册目录位于 `Plugins/Extensions`，不解释业务载荷。插件通过 `IQuantumExtensions` 或 `context.extensions` 定义和观察自己的扩展点，无需增加 `plugin.json` 字段。定义和贡献属于运行时代次，只有已提交目录中的代次可见。载荷为独立 JSON 数据，修订号仅用于会话内排序。设置模块定义下列消费契约，其他消费者可以定义不同的 JSON 契约。
+Desktop 实现 SDK 中通过代码定义、无业务类型依赖的 JSON 扩展协议。宿主注册目录位于 `Plugins/Extensions`，不解释业务载荷。插件通过 `IQuantumExtensions` 或 `context.extensions` 定义和观察自己的扩展点，无需增加 `plugin.json` 字段。定义和贡献属于运行时代次，只有已提交目录中的代次可见。载荷为独立 JSON 数据，修订号仅用于会话内排序。设置模块定义下列消费契约，其他消费者可以定义不同的 JSON 契约。
 
 ## 设置视图契约，版本 1
 
@@ -26,12 +26,14 @@ extensions.Register("quantum.settings/pages", 1, "settings", page.RootElement);
 
 页签链接使用 `/settings?section=<插件ID/本地ID>`，兼容现有 `section=account`、`section=plugins` 和 `#account` 链接。选中贡献消失时返回通用页。.NET 组件通过现有激活器获取插件服务容器；Web 视图使用已有的沙箱 iframe 和 route/view 挂载契约。切换语言重新挂载。Web 运行时目前每个插件同时挂载一个视图，同一 Web 插件的多个贡献需要通过选择切换，不应同时挂载。
 
-## 候选版本验证
+## 集成验证
 
-SDK 与 Desktop 保持独立仓库边界。按 SDK 的包验证流程构建候选 NuGet 包，然后使用 `-p:RestoreAdditionalProjectSources=<候选包目录>` 恢复 Desktop。Desktop 精确固定候选版本，禁止以兄弟仓库源代码引用替代包依赖。候选包尚未公开发布；需要从公共源恢复的消费者合并前，应先按批准的发布流程发布对应包。
+SDK 与 Desktop 保持独立仓库边界，Desktop 精确固定 SDK 包版本。验证本地构建的包时，使用 `-p:RestoreAdditionalProjectSources=<包目录>` 恢复依赖；禁止以兄弟仓库源代码引用替代包依赖。
 
 验证 SDK 契约、Desktop .NET 测试、`node --test tests/web-plugin-host.test.mjs` 和 Windows 原生构建。macOS iframe 渲染需要单独的平台验证。
 
 ## 手工界面复核
 
-运行带 .NET 示例测试插件的原生 Debug 宿主。打开设置，确认三个内置页签旁出现示例插件页签，显示自定义扩展点的消息。检查键盘导航与窄窗口下页签换行。打开示例页签，再从插件管理重载或禁用插件，确认入口更新或消失且不保留旧内容。向同一页面添加来自同一 Web 插件的两个视图贡献，确认选择器可以切换单个 iframe。Windows 构建和 HTML 渲染测试不能替代这项原生界面复核。
+运行带主示例和依赖示例测试插件的原生 Debug 宿主。打开“设置 → 示例插件”，应显示两个插件贡献的消息。更新、撤回和恢复主示例的消息时，依赖示例的消息仍然保留。通用设置中应出现依赖示例的分组。禁用依赖示例时，它的两项贡献同时消失；重新启用后恢复。安装 SDK Web 示例后，在 Web 示例设置页更新消息，确认主示例设置页同步显示新值。
+
+检查键盘导航与窄窗口下页签换行。在选中主示例设置页时重载主插件，确认只保留当前运行时的内容。SDK 的 `docs/zh-CN/extensions.md` 提供完整体验步骤和源码入口。

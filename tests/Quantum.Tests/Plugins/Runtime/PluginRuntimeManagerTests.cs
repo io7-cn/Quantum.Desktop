@@ -16,6 +16,44 @@ namespace Quantum.Tests;
 public sealed class PluginRuntimeManagerTests
 {
     [Fact]
+    public async Task ExamplePluginsDemonstrateCrossPluginUpdatesWithdrawalAndSettingsSections()
+    {
+        const string owner = "quantum.plugin.example";
+        const string companion = "quantum.plugin.example-dependent";
+        using var fixture = new RuntimeFixture();
+        fixture.AddExampleDependentPlugin();
+        await using var manager = fixture.CreateManager();
+        await manager.InitializeAsync(fixture.HostServices);
+        QuantumExtensionSnapshot? messages = null;
+        QuantumExtensionSnapshot? sections = null;
+        using var watchMessages = fixture.Catalog.Extensions.Observe(owner + "/example-data", 1, snapshot => messages = snapshot);
+        using var watchSections = fixture.Catalog.Extensions.Observe("quantum.settings/general", 1, snapshot => sections = snapshot);
+        Assert.Equal(new[] { owner, companion }, messages!.Contributions.Select(item => item.PluginId));
+        Assert.Single(sections!.Contributions, item => item.PluginId == companion);
+
+        var plugin = fixture.Catalog.FindPlugin(owner)!;
+        var serviceType = plugin.EntryAssembly!.GetType("Quantum.ExamplePlugin.ExampleExtensions")!;
+        var service = plugin.Services!.GetRequiredService(serviceType);
+        serviceType.GetMethod("UpdateMessage")!.Invoke(service, null);
+        Assert.Contains("(1)", Assert.Single(messages.Contributions, item => item.PluginId == owner).Value.GetProperty("message").GetString());
+        serviceType.GetMethod("ToggleMessage")!.Invoke(service, null);
+        Assert.Equal(companion, Assert.Single(messages.Contributions).PluginId);
+        serviceType.GetMethod("ToggleMessage")!.Invoke(service, null);
+        Assert.Equal(2, messages.Contributions.Count);
+
+        var impact = manager.GetDisableImpact(companion);
+        Assert.True((await manager.DisableAsync(companion, impact.CatalogRevision)).Succeeded);
+        Assert.Equal(owner, Assert.Single(messages.Contributions).PluginId);
+        Assert.Empty(sections.Contributions);
+        Assert.True((await manager.EnableAsync(companion)).Succeeded);
+        Assert.Equal(2, messages.Contributions.Count);
+        Assert.Single(sections.Contributions, item => item.PluginId == companion);
+        Assert.True((await manager.ReloadAsync(owner)).Succeeded);
+        Assert.Equal(2, messages.Contributions.Count);
+        Assert.Single(sections.Contributions, item => item.PluginId == companion);
+    }
+
+    [Fact]
     public async Task ExtensionsFollowRealPluginReloadDisableAndEnable()
     {
         const string id = "quantum.plugin.example";

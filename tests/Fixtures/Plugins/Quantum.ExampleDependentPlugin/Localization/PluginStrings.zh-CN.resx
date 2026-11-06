@@ -13,4 +13,5 @@
   <data name="StartedAtArg" xml:space="preserve"><value>启动时间 {0}</value></data>
   <data name="LatestGreeting" xml:space="preserve"><value>最近的问候</value></data>
   <data name="WaitingForGreeting" xml:space="preserve"><value>等待问候</value></data>
+  <data name="SettingsContributionDescription" xml:space="preserve"><value>此分组由依赖示例插件添加到通用设置。</value></data>
 </root>
