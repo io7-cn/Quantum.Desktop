@@ -36,20 +36,23 @@ public sealed class DesktopDataMigrationTests : IDisposable
         Assert.Equal("plugin", Read("data/Data/Modules/plugin/plugin.json"));
     }
 
-    [Fact]
-    public void Migrate_PreservesCommittedSqliteWalAndLeavesSourceUsable()
+    [Theory]
+    [InlineData("Data", "quantum.db")]
+    [InlineData("DATA", "QUANTUM.DB")]
+    public void Migrate_PreservesCommittedSqliteWalAndLeavesSourceUsable(string dataDirectory, string databaseName)
     {
-        Directory.CreateDirectory(PathOf("legacy/Data"));
-        using var original = new SqliteConnection($"Data Source={PathOf("legacy/Data/quantum.db")};Pooling=False");
+        var sourcePath = PathOf($"legacy/{dataDirectory}/{databaseName}");
+        Directory.CreateDirectory(Path.GetDirectoryName(sourcePath)!);
+        using var original = new SqliteConnection($"Data Source={sourcePath};Pooling=False");
         original.Open();
         using var command = original.CreateCommand();
         command.CommandText = "PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0; CREATE TABLE entries (value TEXT); INSERT INTO entries VALUES ('saved');";
         command.ExecuteNonQuery();
-        Assert.True(File.Exists(PathOf("legacy/Data/quantum.db-wal")));
+        Assert.True(File.Exists(sourcePath + "-wal"));
 
         Migrate();
 
-        using var restored = new SqliteConnection($"Data Source={PathOf("data/Data/quantum.db")};Pooling=False");
+        using var restored = new SqliteConnection($"Data Source={PathOf($"data/{dataDirectory}/{databaseName}")};Pooling=False");
         restored.Open();
         using var query = restored.CreateCommand();
         query.CommandText = "SELECT value FROM entries";
@@ -93,14 +96,17 @@ public sealed class DesktopDataMigrationTests : IDisposable
     }
 
     [Theory]
-    [InlineData("quantum.db-wal")]
-    [InlineData("quantum.db-shm")]
-    public void Migrate_RejectsOrphanedSqliteFilesWithoutPublishingEmptyData(string fileName)
+    [InlineData("Data", "quantum.db-wal")]
+    [InlineData("Data", "quantum.db-shm")]
+    [InlineData("DATA", "QUANTUM.DB-WAL")]
+    [InlineData("DATA", "QUANTUM.DB-SHM")]
+    public void Migrate_RejectsOrphanedSqliteFilesWithoutPublishingEmptyData(string dataDirectory, string fileName)
     {
-        Write("legacy/Data/" + fileName, "recovery data");
+        var source = $"legacy/{dataDirectory}/{fileName}";
+        Write(source, "recovery data");
         Assert.Throws<IOException>(Migrate);
         Assert.False(Directory.Exists(PathOf("data")));
-        Assert.Equal("recovery data", Read("legacy/Data/" + fileName));
+        Assert.Equal("recovery data", Read(source));
         Assert.Empty(Directory.GetDirectories(_root, ".quantum-migration-*"));
     }
 

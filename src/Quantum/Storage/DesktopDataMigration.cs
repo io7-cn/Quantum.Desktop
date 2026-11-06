@@ -138,11 +138,14 @@ internal static class DesktopDataMigration
             return;
         }
 
-        if (snapshotDatabase && !File.Exists(Path.Combine(source, "quantum.db"))
-            && (File.Exists(Path.Combine(source, "quantum.db-wal"))
-                || File.Exists(Path.Combine(source, "quantum.db-shm"))))
+        if (snapshotDatabase)
         {
-            throw new IOException($"The database is missing beside SQLite recovery files in '{source}'. Restore a complete backup before retrying.");
+            var files = Directory.EnumerateFiles(source).Select(Path.GetFileName)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            if (!files.Contains("quantum.db") && (files.Contains("quantum.db-wal") || files.Contains("quantum.db-shm")))
+            {
+                throw new IOException($"The database is missing beside SQLite recovery files in '{source}'. Restore a complete backup before retrying.");
+            }
         }
 
         Directory.CreateDirectory(destination);
@@ -150,15 +153,17 @@ internal static class DesktopDataMigration
         {
             RejectLinks(entry);
             var name = Path.GetFileName(entry);
+            // Windows host names are case-insensitive; preserve the original names in the copied tree.
+            var hostName = name.ToLowerInvariant();
             var target = Path.Combine(destination, name);
             if (Directory.Exists(entry))
             {
-                if (!skipCache || name != "Cache")
+                if (!skipCache || hostName != "cache")
                 {
-                    CopyDirectory(entry, target, snapshotDatabase: skipCache && name == "Data");
+                    CopyDirectory(entry, target, snapshotDatabase: skipCache && hostName == "data");
                 }
             }
-            else if (!snapshotDatabase || name is not ("quantum.db-wal" or "quantum.db-shm"))
+            else if (!snapshotDatabase || hostName is not ("quantum.db-wal" or "quantum.db-shm"))
             {
                 if (File.Exists(target))
                 {
@@ -170,7 +175,7 @@ internal static class DesktopDataMigration
                         throw new IOException($"Legacy files conflict at '{target}'. Original files were preserved.");
                     }
                 }
-                else if (snapshotDatabase && name == "quantum.db")
+                else if (snapshotDatabase && hostName == "quantum.db")
                 {
                     // SQLite backup includes committed WAL state and takes a consistent snapshot.
                     using var original = new SqliteConnection(new SqliteConnectionStringBuilder
