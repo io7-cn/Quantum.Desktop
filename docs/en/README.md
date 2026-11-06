@@ -22,6 +22,10 @@ The plugins under `tests/Fixtures/Plugins/` are fixed host test fixtures derived
 
 Logs go to `Logs/quantum-YYYYMMDD-HHmmss-PID-SEGMENT.log` under application data, with a 20 MiB threshold per segment. The file writer rolls before a new entry would exceed the threshold and keeps a single oversized entry intact. Pass `--console` to also see logs in the terminal. With `dotnet run`, append `-- --console` to the launch command.
 
+On Windows, application data is `%LOCALAPPDATA%\io7-cn\io.quantum.desktop\Data`, independent of the installation. See [data migration and uninstall choices](desktop-releases.md#local-data-and-uninstalling-on-windows) before upgrading an affected old release.
+
+On macOS, data and personal plugins live in the user's Library directory outside `Quantum.app`. See [macOS migration and uninstall choices](desktop-releases.md#local-data-and-uninstalling-on-macos).
+
 See [Login sessions](login-sessions.md), [Architecture](architecture.md), [Runtime extensions](extensions.md), [Desktop releases](desktop-releases.md), the [.NET plugin guide](plugin-development.md), the [TypeScript plugin guide](web-plugin-development.md) and [Contributing](CONTRIBUTING.md). Licensed under [Apache License 2.0](../../LICENSE).
 
 ## Launch commands

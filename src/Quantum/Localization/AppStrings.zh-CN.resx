@@ -330,4 +330,12 @@
   <data name="MarketplaceConnected" xml:space="preserve"><value>已连接</value></data>
   <data name="MarketplaceUnavailable" xml:space="preserve"><value>离线</value></data>
   <data name="SdkCompatibilityUndeclared" xml:space="preserve"><value>未声明</value></data>
+  <data name="UninstallQuantum" xml:space="preserve"><value>卸载 Quantum</value></data>
+  <data name="UninstallKeepData" xml:space="preserve"><value>保留本地数据（推荐）</value></data>
+  <data name="UninstallClearData" xml:space="preserve"><value>清除本地数据</value></data>
+  <data name="UninstallClearDataPrompt" xml:space="preserve"><value>确定永久清除 Quantum 数据库、已安装插件、设置和登录状态吗？此操作无法撤销，自定义外部插件目录将保留。</value></data>
+  <data name="UninstallMacDescription" xml:space="preserve"><value>将 Quantum 移入废纸篓，并选择是否保留本地数据。直接从 Finder 移除应用会保留数据，不会弹出选择。</value></data>
+  <data name="UninstallUpdateBusy" xml:space="preserve"><value>请等待当前更新完成后再卸载。</value></data>
+  <data name="UninstallFailedArg" xml:space="preserve"><value>卸载未完成：{0}。请退出 Quantum 后再重试。</value></data>
+  <data name="UninstallKeychainFailedArg" xml:space="preserve"><value>无法清除 Quantum 登录状态：{0}。</value></data>
 </root>

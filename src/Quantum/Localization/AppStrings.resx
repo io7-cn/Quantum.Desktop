@@ -330,4 +330,12 @@
   <data name="MarketplaceConnected" xml:space="preserve"><value>Connected</value></data>
   <data name="MarketplaceUnavailable" xml:space="preserve"><value>Offline</value></data>
   <data name="SdkCompatibilityUndeclared" xml:space="preserve"><value>Not declared</value></data>
+  <data name="UninstallQuantum" xml:space="preserve"><value>Uninstall Quantum</value></data>
+  <data name="UninstallKeepData" xml:space="preserve"><value>Keep local data (recommended)</value></data>
+  <data name="UninstallClearData" xml:space="preserve"><value>Clear local data</value></data>
+  <data name="UninstallClearDataPrompt" xml:space="preserve"><value>Permanently clear Quantum databases, installed plugins, settings and sign-in state? This cannot be undone. Custom external plugin directories will be retained.</value></data>
+  <data name="UninstallMacDescription" xml:space="preserve"><value>Move Quantum to Trash and choose whether to keep local data. Removing the app directly in Finder keeps data without a prompt.</value></data>
+  <data name="UninstallUpdateBusy" xml:space="preserve"><value>Wait for the current update to finish before uninstalling.</value></data>
+  <data name="UninstallFailedArg" xml:space="preserve"><value>Uninstall did not complete: {0}. Quit Quantum before retrying.</value></data>
+  <data name="UninstallKeychainFailedArg" xml:space="preserve"><value>Could not clear Quantum sign-in state: {0}.</value></data>
 </root>

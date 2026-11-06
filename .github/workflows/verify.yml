@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  core-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -31,6 +31,42 @@ jobs:
       - run: npm test
         working-directory: tests/Fixtures/Plugins/Quantum.ExampleWebPlugin
 
+  macos:
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [maccatalyst-arm64, maccatalyst-x64]
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.0.1.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.100
+      - name: Verify macOS storage and native host
+        run: |
+          mkdir -p "$RUNNER_TEMP/quantum-mac-ci"
+          cd "$RUNNER_TEMP/quantum-mac-ci"
+          echo '{"sdk":{"version":"10.0.100","rollForward":"disable"}}' > global.json
+          mkdir -p "$RUNNER_TEMP/quantum-mac-ci/tmp"
+          export TMPDIR="$RUNNER_TEMP/quantum-mac-ci/tmp"
+          dotnet workload install maui-maccatalyst --skip-manifest-update
+          dotnet test "$GITHUB_WORKSPACE/tests/Quantum.Tests/Quantum.Tests.csproj" -c Release -p:QuantumCoreOnly=true
+          dotnet build "$GITHUB_WORKSPACE/src/Quantum/Quantum.csproj" -c Release -f net10.0-maccatalyst -r '${{ matrix.runtime }}' -p:EnableCodeSigning=false -p:CreatePackage=false -p:QuantumDirectDistribution=true
+          bundle="$GITHUB_WORKSPACE/src/Quantum/bin/Release/net10.0-maccatalyst/${{ matrix.runtime }}/Quantum.app"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$bundle/Contents/Info.plist")" = io.quantum.desktop
+
+  test:
+    needs: [core-tests, macos]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: test '${{ needs.core-tests.result }}' = success && test '${{ needs.macos.result }}' = success
+
   windows:
     runs-on: windows-latest
     steps:
@@ -41,5 +77,6 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
+      - run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/Quantum.Tests/Platforms/Windows/Uninstall.Tests.ps1
       - run: dotnet workload install maui-windows --skip-manifest-update
       - run: dotnet build src/Quantum/Quantum.csproj -c Debug -f net10.0-windows10.0.19041.0

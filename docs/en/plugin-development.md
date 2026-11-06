@@ -292,7 +292,7 @@ internal sealed class CalendarDbContextModelCreatingContributor
 
 ## 7. Debug
 
-Build the plugin and place each plugin in its own folder under `Modules`. Set `QUANTUM_MODULES_PATH` to an accessible override when needed. An inaccessible override falls back to the application data directory. For sandboxed macOS builds use the application data directory. Supply the manifest, entry, private dependencies, migrations and assets. `disabled` is reserved.
+Build the plugin and place each plugin in its own folder under application data `Modules` (Windows: `%LOCALAPPDATA%\io7-cn\io.quantum.desktop\Data\Modules`). Release builds use this directory by default; Debug builds can use bundled fixtures. Set `QUANTUM_MODULES_PATH` to an accessible override when needed. An inaccessible override falls back to the application data directory. Custom external directories remain user-owned and are retained on application uninstall. For sandboxed macOS builds use the application data directory. Supply the manifest, entry, private dependencies, migrations and assets. `disabled` is reserved.
 
 Replace source files and increase the manifest version, then use Hot Upgrade or Rescan Modules in Settings. The host uses shadow copies, so the source assemblies are replaceable. A failed load or startup restores the previous runtime; committed SQL remains applied. Disable or uninstall shows the affected hard dependents before confirmation. Disable moves files to `Modules/disabled`; re-enable revalidates the entire candidate. Uninstall deletes the confirmed directories. Release tasks, events and type references when stopping so the assembly load context can be reclaimed.
 
