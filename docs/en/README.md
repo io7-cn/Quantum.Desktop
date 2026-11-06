@@ -50,3 +50,5 @@ python .standards/.ci/check-adoption.py
 ```
 
 Keep both language editions aligned. AGENTS.md links to the adopted English entry point; project-specific instructions supplement the shared requirements.
+
+[Runtime extensions](extensions.md)

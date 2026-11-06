@@ -50,3 +50,5 @@ python .standards/.ci/check-adoption.py
 ```
 
 同步维护两种语言。AGENTS.md 指向采用的英文入口，项目专属指令补充共享规范。
+
+[运行时扩展](extensions.md)
