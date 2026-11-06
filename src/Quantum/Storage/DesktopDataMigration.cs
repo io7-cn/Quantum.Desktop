@@ -83,11 +83,10 @@ internal static class DesktopDataMigration
         }
     }
 
-    public static void Migrate(string legacyRoot, string destinationRoot, string bundledModules)
+    public static void Migrate(string legacyRoot, string destinationRoot, params string[] bundledModules)
     {
         legacyRoot = Path.GetFullPath(legacyRoot);
         destinationRoot = Path.GetFullPath(destinationRoot);
-        bundledModules = Path.GetFullPath(bundledModules);
         RejectLinks(destinationRoot);
         var parent = Path.GetDirectoryName(destinationRoot)!;
         Directory.CreateDirectory(parent);
@@ -109,7 +108,10 @@ internal static class DesktopDataMigration
         try
         {
             CopyDirectory(legacyRoot, stagingRoot, skipCache: true);
-            CopyDirectory(bundledModules, Path.Combine(stagingRoot, "Data", "Modules"));
+            foreach (var source in bundledModules.Select(Path.GetFullPath).Distinct(StringComparer.Ordinal))
+            {
+                CopyDirectory(source, Path.Combine(stagingRoot, "Data", "Modules"));
+            }
             File.WriteAllText(Path.Combine(stagingRoot, CompletionFile), "1\n");
             if (Directory.Exists(destinationRoot))
             {
@@ -134,6 +136,13 @@ internal static class DesktopDataMigration
         if (!Directory.Exists(source))
         {
             return;
+        }
+
+        if (snapshotDatabase && !File.Exists(Path.Combine(source, "quantum.db"))
+            && (File.Exists(Path.Combine(source, "quantum.db-wal"))
+                || File.Exists(Path.Combine(source, "quantum.db-shm"))))
+        {
+            throw new IOException($"The database is missing beside SQLite recovery files in '{source}'. Restore a complete backup before retrying.");
         }
 
         Directory.CreateDirectory(destination);

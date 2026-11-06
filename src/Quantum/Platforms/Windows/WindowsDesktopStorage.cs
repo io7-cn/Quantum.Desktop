@@ -7,6 +7,8 @@ namespace Quantum.WinUI;
 
 internal static class WindowsDesktopStorage
 {
+    private const string UninstallRegistryPath = @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Quantum";
+
     public static bool Initialize()
     {
         var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -23,10 +25,21 @@ internal static class WindowsDesktopStorage
                 throw new IOException("Choose an installation location that does not contain the Quantum user data directory.");
             }
 
+            // A portable build can migrate the installed copy before Setup replaces its entire root.
+            using var registration = Registry.CurrentUser.OpenSubKey(UninstallRegistryPath);
+            var legacyInstallation = registration?.GetValue("InstallLocation") as string;
+            legacyInstallation = string.IsNullOrWhiteSpace(legacyInstallation)
+                ? Path.Combine(local, "Quantum") : legacyInstallation;
+            if (!Path.IsPathFullyQualified(legacyInstallation))
+            {
+                throw new IOException("The legacy installation path must be absolute.");
+            }
+
             DesktopDataMigration.Migrate(
                 Path.Combine(local, "Quantum", "io.quantum.desktop"),
                 destination,
-                Path.Combine(AppContext.BaseDirectory, "Modules"));
+                Path.Combine(AppContext.BaseDirectory, "Modules"),
+                Path.Combine(legacyInstallation, "current", "Modules"));
             return true;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or Microsoft.Data.Sqlite.SqliteException)
@@ -48,8 +61,7 @@ internal static class WindowsDesktopStorage
             return;
         }
 
-        using var key = Registry.CurrentUser.OpenSubKey(
-            @"Software\Microsoft\Windows\CurrentVersion\Uninstall\Quantum", writable: true);
+        using var key = Registry.CurrentUser.OpenSubKey(UninstallRegistryPath, writable: true);
         if (key is null || key.GetValue("InstallLocation") is not string installedRoot
             || !string.Equals(Path.GetFullPath(installedRoot), Path.GetFullPath(locator.RootAppDir!), StringComparison.OrdinalIgnoreCase))
         {

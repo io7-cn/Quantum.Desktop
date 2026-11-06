@@ -92,6 +92,32 @@ public sealed class DesktopDataMigrationTests : IDisposable
         Assert.Equal("invalid database", Read("legacy/Data/quantum.db"));
     }
 
+    [Theory]
+    [InlineData("quantum.db-wal")]
+    [InlineData("quantum.db-shm")]
+    public void Migrate_RejectsOrphanedSqliteFilesWithoutPublishingEmptyData(string fileName)
+    {
+        Write("legacy/Data/" + fileName, "recovery data");
+        Assert.Throws<IOException>(Migrate);
+        Assert.False(Directory.Exists(PathOf("data")));
+        Assert.Equal("recovery data", Read("legacy/Data/" + fileName));
+        Assert.Empty(Directory.GetDirectories(_root, ".quantum-migration-*"));
+    }
+
+    [Fact]
+    public void Migrate_ImportsInstalledPluginsBeforeAnInstallerReplacesTheirSource()
+    {
+        Write("legacy/Settings/preferences.dat", "settings");
+        Write("current/Modules/bundled/plugin.json", "bundled");
+        Write("old-install/current/Modules/personal/plugin.json", "personal");
+        DesktopDataMigration.Migrate(PathOf("legacy"), PathOf("data"),
+            PathOf("current/Modules"), PathOf("old-install/current/Modules"));
+        Directory.Delete(PathOf("old-install"), recursive: true);
+        Assert.Equal("personal", Read("data/Data/Modules/personal/plugin.json"));
+        Assert.Equal("bundled", Read("data/Data/Modules/bundled/plugin.json"));
+        Assert.Equal("settings", Read("data/Settings/preferences.dat"));
+    }
+
     [Fact]
     public void Migrate_FirstInstallCreatesCompletionMarker()
     {
