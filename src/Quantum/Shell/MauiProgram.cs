@@ -8,6 +8,7 @@ using Quantum.Localization;
 using Quantum.Marketplace;
 using Quantum.Mobile.Internal;
 using Quantum.Plugins;
+using Quantum.Storage;
 using Quantum.WebPlugins;
 
 namespace Quantum;
@@ -16,6 +17,12 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+#if MACCATALYST && !DEBUG
+        DesktopDataMigration.MigrateModules(
+            Path.Combine(FileSystem.AppDataDirectory, "Modules"),
+            Path.Combine(AppContext.BaseDirectory, "Modules"),
+            Path.Combine(Foundation.NSBundle.MainBundle.BundlePath, "Contents", "Resources", "Modules"));
+#endif
         var loggingOptions = QuantumLoggingOptions.Parse(
             Environment.GetCommandLineArgs(),
             FileSystem.AppDataDirectory);
@@ -38,6 +45,7 @@ public static class MauiProgram
         builder.Services.AddMauiBlazorWebView();
 #if MACCATALYST
         builder.Services.AddSingleton<Quantum.Updates.IAppUpdateBackend, Quantum.Updates.MacAppUpdateBackend>();
+        builder.Services.AddSingleton<IAppUninstallService, MacAppUninstallService>();
 #else
         builder.Services.AddSingleton<Quantum.Updates.IAppUpdateBackend, Quantum.Updates.VelopackUpdateBackend>();
 #endif
@@ -145,9 +153,11 @@ public static class MauiProgram
         var databasePath = Path.Combine(FileSystem.AppDataDirectory, "quantum.db");
         var preferredPath = !string.IsNullOrWhiteSpace(configuredPath)
             ? Path.GetFullPath(configuredPath)
-            : Directory.Exists(bundledPath)
-                ? bundledPath
-                : applicationDataPath;
+#if DEBUG
+            : Directory.Exists(bundledPath) ? bundledPath : applicationDataPath;
+#else
+            : applicationDataPath;
+#endif
 
         try
         {

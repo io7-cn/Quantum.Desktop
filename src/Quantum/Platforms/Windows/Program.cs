@@ -6,7 +6,16 @@ public static class Program
     public static void Main(string[] args)
     {
         // Install/update hooks must run before WinUI or the plugin host starts.
-        Velopack.VelopackApp.Build().SetAutoApplyOnStartup(false).Run();
+        Velopack.VelopackApp.Build()
+            .SetAutoApplyOnStartup(false)
+            .OnAfterUpdateFastCallback(_ => WindowsDesktopStorage.RegisterUninstaller())
+            .Run();
+        if (!WindowsDesktopStorage.Initialize())
+        {
+            Environment.ExitCode = 1;
+            return;
+        }
+
         WinRT.ComWrappersSupport.InitializeComWrappers();
         Microsoft.UI.Xaml.Application.Start(p =>
         {

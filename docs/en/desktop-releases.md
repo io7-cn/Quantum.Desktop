@@ -6,6 +6,24 @@
 
 Download a build for your operating system from [GitHub Releases](https://github.com/io7-cn/Quantum.Desktop/releases). Windows uses `Quantum-win-x64-Setup.exe`. On macOS, select the `.pkg` for Apple Silicon or Intel. The release page lists available builds. The installer includes the .NET runtime. Windows setup may need the network to install WebView2 or the Visual C++ runtime.
 
+## Local data and uninstalling on Windows
+
+Windows stores persistent state under `%LOCALAPPDATA%\io7-cn\io.quantum.desktop`, outside the default installation directory `%LOCALAPPDATA%\Quantum`. `Data` contains databases, personal plugins and logs; `Settings` contains preferences and protected sign-in state. Release builds use application data for plugins unless `QUANTUM_MODULES_PATH` is set; Debug builds may use bundled fixtures.
+
+Close older Quantum processes before the first launch. It copies legacy `%LOCALAPPDATA%\Quantum\io.quantum.desktop` state and still-present installation `Modules` once, preserving originals and committed SQLite write-ahead log (WAL) records. Conflicts, inaccessible or linked paths, invalid databases, or recovery files without their main database stop startup; back up both locations and resolve the reported problem before retrying. For rollback, retain and back up the new root: legacy copies become stale after new writes. Already deleted data requires a separate backup to recover.
+
+**Before upgrading an affected old release**, close Quantum and back up both the legacy data directory and `<installation>\current\Modules` outside the installation. Extract the repaired release's Windows `*-Portable.zip` outside the installation and run `Quantum.exe` once **before running Setup or updating**. It imports the old data and plugins from the registered installation, including custom install locations; verify the records and plugins, then close the portable copy and install normally. Velopack Setup replaces the entire previous installation root, while an update replaces `current`; either can remove legacy files before a newly installed app starts. Do not uninstall the affected release first. Keep the backups until the installed version has been verified.
+
+After launch, Windows Settings asks whether to keep Quantum data when uninstalling. **Yes (default)** retains it for reinstallation; **No** requires a second confirmation and clears only the new and legacy app-owned data roots after successful uninstall; **Cancel** exits without uninstalling. Silent uninstall and failed uninstall retain data. External plugin directories are never cleared. The entry uses Windows PowerShell and is refreshed on startup and after updates. A missing migration completion marker blocks uninstall through this entry. Never-launched installations use the installer's default entry; direct `Update.exe --uninstall` bypasses the choice but retains the independent data root.
+
+## Local data and uninstalling on macOS
+
+Mac Catalyst stores `quantum.db`, personal `Modules` and the mobile bridge journal in the user's Library directory, outside `Quantum.app`; preferences use the app's defaults domain and credentials use Keychain. Release startup copies still-present bundled plugins into Library `Modules` once, merging without overwriting conflicts. A failed or interrupted migration preserves the previous directory and stops startup. Before upgrading an affected old release, back up plugins from the old `.app` outside the bundle: an updater can replace the bundle before migration runs.
+
+In a directly distributed installation, choose **Settings → General → Uninstall Quantum**. **Keep local data (recommended)** moves the app to Trash and retains data for reinstallation; **Clear local data** requires a second confirmation. The app first moves its bundle to Trash, then stops plugin and bridge writers before clearing its known files, plugin directories, `quantum-*.log` logs, cache, preferences and Keychain records. Unrelated Library files, other apps' logs and external plugin directories remain untouched. Cancel exits without uninstalling; a failed move to Trash does not clear data.
+
+Moving `Quantum.app` to Trash directly in Finder keeps local data without an app confirmation dialog. Use the in-app entry when you want a data choice. Sandboxed development builds keep their system container locations; when switching to direct distribution, export data from the old container as described below.
+
 ## In-app updates
 
 The app checks for updates in the background at startup. Settings shows the installed and target versions, progress and status. Save your work, then select the update and restart action. The updater prefers a delta package and falls back to the full package. An interrupted download can be retried without replacing the current installation. Keep settings, databases and personal plugins under the application data directory, which the update preserves.

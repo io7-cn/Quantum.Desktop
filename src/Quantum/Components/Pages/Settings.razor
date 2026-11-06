@@ -6,6 +6,7 @@
 @inject CultureService CultureService
 @inject IStringLocalizer<AppStrings> L
 @inject NavigationManager Navigation
+@inject IServiceProvider Services
 
 <PageTitle></PageTitle>
 
@@ -51,6 +52,15 @@
         </section>
 
         <AppUpdatePanel />
+        @if (Services.GetService(typeof(Quantum.Storage.IAppUninstallService))
+            is Quantum.Storage.IAppUninstallService { IsAvailable: true } uninstaller)
+        {
+            <section class="section-block">
+                <button type="button" class="danger-button" disabled="@uninstaller.IsBusy"
+                        @onclick="uninstaller.RequestAsync">@L["UninstallQuantum"]</button>
+                <p>@L["UninstallMacDescription"]</p>
+            </section>
+        }
     }
 
     @if (_activeArea == SettingsArea.PluginManagement)

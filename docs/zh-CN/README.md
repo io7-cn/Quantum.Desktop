@@ -40,6 +40,10 @@ dotnet run --project src/Quantum/Quantum.csproj --framework net10.0-windows10.0.
 
 版权归属及第三方许可说明见 [NOTICE](../../NOTICE)。
 
+Windows 应用数据位于 `%LOCALAPPDATA%\io7-cn\io.quantum.desktop\Data`，独立于安装目录。从受影响旧版本升级前，请阅读[数据迁移和卸载选择](desktop-releases.md#windows-本地数据与卸载)。
+
+macOS 的数据和个人插件保存在用户的 Library 目录中，独立于 `Quantum.app`。参见 [macOS 迁移和卸载选择](desktop-releases.md#macos-本地数据与卸载)。
+
 ## 开发规范
 
 遵循[简体中文开发规范](../../.standards/docs/zh-CN/README.md)。.standards 子模块记录经过审查的确切版本；上游变更只有在显式更新该提交后才生效。开发前初始化：

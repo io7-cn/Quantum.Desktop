@@ -313,12 +313,17 @@ public sealed class MobileDesktopBridge(
     }
     private static Task<JsonElement> SendAsync(BridgeClient client, BridgeSend message, CancellationToken token)
         => client.CallAsync<JsonElement>("send", message, token);
-    public async ValueTask DisposeAsync()
+    internal async Task ShutdownAsync()
     {
         session.Changed -= SessionChanged;
         await _lifetime.CancelAsync();
         if (_automatic is not null) await _automatic;
         await StopAsync(revoke: false);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await ShutdownAsync();
         _cancellation?.Dispose(); _lifecycle.Dispose(); _lifetime.Dispose(); _wake.Dispose();
     }
     private sealed record JournalEntry(string DesktopId, string MobileId, string RequestId, DateTimeOffset CreatedAt, BridgeOutcome? Outcome, bool Uploaded = false);
