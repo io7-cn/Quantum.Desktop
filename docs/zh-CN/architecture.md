@@ -22,6 +22,10 @@ Quantum
 - 清单、运行时环境和 Notify 消息使用字符串表示插件 ID、版本、版本范围和能力名。SDK 和宿主通过普通函数校验输入并比较版本。
 - Quantum Platform 是独立部署的后端平台，平台级用户身份、权限、插件市场、密码哈希、文件存储、JWT 与 EF Core 持久化均由该宿主组合；其 Contract 通过 `/rpc` 的 JSON-RPC 2.0 暴露，不进入桌面插件 ABI。
 
+## 外壳导航
+
+紧凑侧栏在上方显示插件路由，下方保留插件市场和设置入口。最底部的设置链接复用 `wwwroot/assets/quantum-mark.svg`，配以浅紫色背景，保持 80px 侧栏和 48px 导航点击区域。点击仍打开 `/settings`，悬浮提示和无障碍名称仍使用本地化的“设置”。悬停、当前路由和键盘焦点状态由 `Components/Layout/MainLayout.razor.css` 定义；Logo 对辅助技术作为装饰图片处理。
+
 ## 启动顺序
 
 1. `NOFMauiAppBuilder.Create()` 创建 NOF/MAUI composition root。
