@@ -27,6 +27,8 @@ The bottom-right ZIP installation result uses `Components/Notifications/Operatio
 
 ## Data and calls
 
+The compiled [build profile](build-profiles.md) separates local Preview builds from Stable, including application identity, host storage, browser state and platform connections. Preview is the default for both Debug and Release and skips production migration, updates and uninstall integration. The following legacy migration behavior applies only to Stable.
+
 Windows storage migration completes before MAUI initializes preferences or secure storage. It stages a complete copy with a SQLite backup, publishes the directory atomically and stops startup on failure. See the [storage decision](decisions/0001-windows-data.md) and [installation and recovery behavior](desktop-releases.md#local-data-and-uninstalling-on-windows).
 
 macOS retains MAUI's external Library storage and migrates bundled plugins through a recoverable directory replacement. Its native uninstall entry uses `NSFileManager` to move the app to Trash before stopping data writers and optionally clearing only known app-owned paths, preferences and Keychain records. The shared Library and cache roots are never deletion targets; Finder removal preserves data without invoking app code.

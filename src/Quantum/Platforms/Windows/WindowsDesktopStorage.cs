@@ -11,6 +11,11 @@ internal static class WindowsDesktopStorage
 
     public static bool Initialize()
     {
+        if (DesktopBuildProfile.Current.IsPreview)
+        {
+            return true;
+        }
+
         var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         var destination = Path.Combine(local, "io7-cn", "io.quantum.desktop");
         try
@@ -55,6 +60,11 @@ internal static class WindowsDesktopStorage
 
     internal static void RegisterUninstaller()
     {
+        if (DesktopBuildProfile.Current.IsPreview)
+        {
+            return;
+        }
+
         var locator = VelopackLocator.Current;
         if (locator.CurrentlyInstalledVersion is null || locator.IsPortable || locator.AppId != "Quantum")
         {

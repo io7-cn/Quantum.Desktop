@@ -16,7 +16,7 @@ Quantum Desktop 是面向 Windows 和 macOS 的本地优先插件宿主，采用
 
 ## 开发与发布
 
-使用 .NET 10 SDK 和对应系统的 MAUI 工作负载。在仓库根目录执行 `dotnet build Quantum.Desktop.slnx` 构建，执行 `dotnet test tests/Quantum.Tests/Quantum.Tests.csproj -p:QuantumCoreOnly=true` 运行普通 `net10.0` 测试。原生 Debug 构建会将插件测试资源暂存到应用输出目录。Windows Debug 使用自包含的 Windows App SDK。
+使用 .NET 10 SDK 和对应系统的 MAUI 工作负载。在仓库根目录执行 `dotnet build Quantum.Desktop.slnx` 构建。本地 Debug、Release 都默认使用隔离的 Preview 身份，选择 Stable 前请阅读[构建配置与数据隔离](build-profiles.md)。执行 `dotnet test tests/Quantum.Tests/Quantum.Tests.csproj -p:QuantumCoreOnly=true` 运行普通 `net10.0` 测试。原生 Debug 会将插件测试资源暂存到应用输出目录，但 Preview 只加载安装到自身数据目录的插件。Windows Debug 使用自包含的 Windows App SDK。
 
 `tests/Fixtures/Plugins/` 下的插件是基于 [SDK 示例](https://github.com/io7-cn/Quantum.Sdk/tree/v0.3.0-rc.3/samples) 的固定宿主测试资源。在 Web 测试资源项目目录运行 `npm ci` 和 `npm test`，即可将其纳入原生 Debug 构建。
 

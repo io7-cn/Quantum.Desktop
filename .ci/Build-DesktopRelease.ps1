@@ -7,7 +7,7 @@ $PSNativeCommandUseErrorActionPreference = $true
 $project = 'src/Quantum/Quantum.csproj'
 $output = "artifacts/releases/$Channel"
 $publish = "artifacts/publish/$Channel"
-$releaseBuild = @('-p:ContinuousIntegrationBuild=true', '-p:DebugType=none', '-p:DebugSymbols=false', '-p:CopyOutputSymbolsToPublishDirectory=false')
+$releaseBuild = @('-p:QuantumBuildProfile=Stable', '-p:ContinuousIntegrationBuild=true', '-p:DebugType=none', '-p:DebugSymbols=false', '-p:CopyOutputSymbolsToPublishDirectory=false')
 $buildNumber = if ($env:CI_PIPELINE_IID) { $env:CI_PIPELINE_IID } elseif ($env:GITHUB_RUN_NUMBER) { $env:GITHUB_RUN_NUMBER } else { '1' }
 $feedPath = Join-Path $output "releases.$Channel.json"
 if (Test-Path $feedPath) {
@@ -52,7 +52,7 @@ else {
         -p:ApplicationDisplayVersion=$Version -p:ApplicationVersion=$buildNumber -p:Version=$Version -p:QuantumDirectDistribution=true `
         -p:CodesignKey="$env:MACOS_APPLICATION_IDENTITY" -p:CodesignKeychain="$env:QUANTUM_SIGNING_KEYCHAIN" `
         -p:EnableCodeSigning=true -p:CreatePackage=false
-    $bundle = "src/Quantum/bin/Release/net10.0-maccatalyst/$rid/Quantum.app"
+    $bundle = "src/Quantum/bin/Stable/Release/net10.0-maccatalyst/$rid/Quantum.app"
     if (!(Test-Path $bundle)) { throw "App bundle missing: $bundle" }
     dotnet publish src/Quantum.UpdateAgent/Quantum.UpdateAgent.csproj @releaseBuild -c Release -r $Channel `
         --self-contained true -p:Version=$Version -o "$bundle/Contents/Helpers/Quantum.UpdateAgent"

@@ -40,6 +40,8 @@ Quantum
 
 ## 启动顺序
 
+编译时的[构建配置](build-profiles.md)将本地 Preview 与 Stable 分开，包括应用身份、宿主存储、浏览器状态和平台连接。Debug、Release 默认均为 Preview，跳过正式版迁移、更新和卸载集成。下述旧数据迁移行为仅适用于 Stable。
+
 1. `NOFMauiAppBuilder.Create()` 创建 NOF/MAUI composition root。
 2. 扫描 `Modules/*/plugin.json`，执行 schema、runtime 入口与 SQL migration artifact 预校验。
 3. 按 `dependencies` 删除强前置缺失、版本不满足和硬循环的候选及其下游。

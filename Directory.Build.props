@@ -2,5 +2,12 @@
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
     <AnalysisLevel>latest</AnalysisLevel>
+    <!-- Configuration controls optimization; the profile controls identity and storage. -->
+    <QuantumBuildProfile Condition="'$(QuantumBuildProfile)' == ''">Preview</QuantumBuildProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Quantum'">
+    <BaseIntermediateOutputPath>obj/$(QuantumBuildProfile)/</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin/$(QuantumBuildProfile)/</BaseOutputPath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin/**;obj/**</DefaultItemExcludes>
   </PropertyGroup>
 </Project>
