@@ -2,6 +2,7 @@
 @implements IDisposable
 @using Microsoft.Extensions.Logging
 @inject PluginCatalog PluginCatalog
+@inject PluginNavigationOrder NavigationOrder
 @inject CultureService CultureService
 @inject IStringLocalizer<AppStrings> L
 @inject IJSRuntime JavaScript
@@ -14,11 +15,11 @@
             <nav aria-label="@L["PluginNavigation"]">
                 @if (PluginCatalog.NavigationRoutes.Count > 0)
                 {
-                    @foreach (var route in PluginCatalog.NavigationRoutes)
+                    @foreach (var route in NavigationOrder.Apply(PluginCatalog.NavigationRoutes))
                     {
                         var title = route.Definition.GetTitle(CultureService.CurrentCulture)
                             ?? route.PluginId.ToString();
-                        <NavLink href="@route.Definition.Path"
+                        <NavLink @key="PluginNavigationOrder.GetKey(route)" href="@route.Definition.Path"
                                  class="nav-item"
                                  aria-label="@title"
                                  title="@title">
@@ -73,6 +74,7 @@
     protected override void OnInitialized()
     {
         PluginCatalog.Changed += OnCatalogChanged;
+        NavigationOrder.Changed += OnCatalogChanged;
         CultureService.Changed += OnCultureChanged;
     }
 
@@ -88,6 +90,7 @@
     public void Dispose()
     {
         PluginCatalog.Changed -= OnCatalogChanged;
+        NavigationOrder.Changed -= OnCatalogChanged;
         CultureService.Changed -= OnCultureChanged;
     }
 

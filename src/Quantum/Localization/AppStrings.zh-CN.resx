@@ -338,4 +338,17 @@
   <data name="UninstallUpdateBusy" xml:space="preserve"><value>请等待当前更新完成后再卸载。</value></data>
   <data name="UninstallFailedArg" xml:space="preserve"><value>卸载未完成：{0}。请退出 Quantum 后再重试。</value></data>
   <data name="UninstallKeychainFailedArg" xml:space="preserve"><value>无法清除 Quantum 登录状态：{0}。</value></data>
+  <data name="SidebarOrder" xml:space="preserve"><value>侧栏顺序</value></data>
+  <data name="SidebarOrderDescription" xml:space="preserve"><value>拖动手柄或使用上下箭头调整，修改会自动保存在此设备上。</value></data>
+  <data name="RestoreDefaultOrder" xml:space="preserve"><value>恢复默认顺序</value></data>
+  <data name="NoSidebarEntries" xml:space="preserve"><value>暂无可在侧栏显示的插件页面。</value></data>
+  <data name="DragToReorder" xml:space="preserve"><value>拖动调整顺序</value></data>
+  <data name="DragSidebarEntryArg" xml:space="preserve"><value>拖动调整 {0} 的顺序</value></data>
+  <data name="MoveUp" xml:space="preserve"><value>上移</value></data>
+  <data name="MoveDown" xml:space="preserve"><value>下移</value></data>
+  <data name="MoveSidebarEntryUpArg" xml:space="preserve"><value>上移 {0}</value></data>
+  <data name="MoveSidebarEntryDownArg" xml:space="preserve"><value>下移 {0}</value></data>
+  <data name="SidebarEntryMovedArg" xml:space="preserve"><value>已将 {0} 移至第 {1} 项，共 {2} 项。</value></data>
+  <data name="DefaultSidebarOrderRestored" xml:space="preserve"><value>已恢复默认侧栏顺序。</value></data>
+  <data name="CouldNotSaveSidebarOrder" xml:space="preserve"><value>无法保存侧栏顺序，请重试。</value></data>
 </root>

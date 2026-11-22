@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Localization;
 using NOF.Hosting;
 using NOF.Hosting.Maui;
+using Quantum.Components;
 using Quantum.Logging;
 using Quantum.Localization;
 using Quantum.Marketplace;
@@ -57,6 +58,9 @@ public static class MauiProgram
         builder.Services.AddSingleton(new CultureService(
             requestedCulture,
             cultureName => Preferences.Default.Set(CultureService.PreferenceKey, cultureName)));
+        builder.Services.AddSingleton(new PluginNavigationOrder(
+            Preferences.Default.Get(PluginNavigationOrder.PreferenceKey, "[]"),
+            order => Preferences.Default.Set(PluginNavigationOrder.PreferenceKey, order)));
         builder.Services.AddSingleton(
             typeof(IStringLocalizer<>),
             typeof(CultureAwareStringLocalizer<>));

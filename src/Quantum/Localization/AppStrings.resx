@@ -338,4 +338,17 @@
   <data name="UninstallUpdateBusy" xml:space="preserve"><value>Wait for the current update to finish before uninstalling.</value></data>
   <data name="UninstallFailedArg" xml:space="preserve"><value>Uninstall did not complete: {0}. Quit Quantum before retrying.</value></data>
   <data name="UninstallKeychainFailedArg" xml:space="preserve"><value>Could not clear Quantum sign-in state: {0}.</value></data>
+  <data name="SidebarOrder" xml:space="preserve"><value>Sidebar order</value></data>
+  <data name="SidebarOrderDescription" xml:space="preserve"><value>Drag the handles or use the arrows. Changes are saved automatically on this device.</value></data>
+  <data name="RestoreDefaultOrder" xml:space="preserve"><value>Restore default order</value></data>
+  <data name="NoSidebarEntries" xml:space="preserve"><value>No plugin pages to show in the sidebar.</value></data>
+  <data name="DragToReorder" xml:space="preserve"><value>Drag to reorder</value></data>
+  <data name="DragSidebarEntryArg" xml:space="preserve"><value>Drag {0} to reorder</value></data>
+  <data name="MoveUp" xml:space="preserve"><value>Move up</value></data>
+  <data name="MoveDown" xml:space="preserve"><value>Move down</value></data>
+  <data name="MoveSidebarEntryUpArg" xml:space="preserve"><value>Move {0} up</value></data>
+  <data name="MoveSidebarEntryDownArg" xml:space="preserve"><value>Move {0} down</value></data>
+  <data name="SidebarEntryMovedArg" xml:space="preserve"><value>{0} moved to position {1} of {2}.</value></data>
+  <data name="DefaultSidebarOrderRestored" xml:space="preserve"><value>Default sidebar order restored.</value></data>
+  <data name="CouldNotSaveSidebarOrder" xml:space="preserve"><value>Could not save the sidebar order. Try again.</value></data>
 </root>

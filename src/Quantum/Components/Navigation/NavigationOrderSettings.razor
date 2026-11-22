@@ -1,0 +1,186 @@
+@namespace Quantum.Components
+@implements IAsyncDisposable
+@using Microsoft.Extensions.Logging
+@inject PluginCatalog PluginCatalog
+@inject PluginNavigationOrder NavigationOrder
+@inject CultureService CultureService
+@inject IStringLocalizer<AppStrings> L
+@inject ILogger<NavigationOrderSettings> Logger
+@inject IJSRuntime JavaScript
+
+<section @ref="_element" class="section-block navigation-order-settings">
+    <div class="section-heading">
+        <div>
+            <h2>@L["SidebarOrder"]</h2>
+            <p>@L["SidebarOrderDescription"]</p>
+        </div>
+        <button type="button" class="secondary-button" disabled="@(!NavigationOrder.HasCustomOrder)"
+                @onclick="Reset">@L["RestoreDefaultOrder"]</button>
+    </div>
+    @if (_error is not null)
+    {
+        <p class="navigation-order-error" role="alert">@_error</p>
+    }
+    @if (Routes.Count == 0)
+    {
+        <p>@L["NoSidebarEntries"]</p>
+    }
+    else
+    {
+        <ol class="navigation-order-list">
+            @for (var index = 0; index < Routes.Count; index++)
+            {
+                var route = Routes[index];
+                var position = index;
+                var key = PluginNavigationOrder.GetKey(route);
+                var title = route.Definition.GetTitle(CultureService.CurrentCulture) ?? route.PluginId.ToString();
+                <li @key="key" class="navigation-order-row" data-navigation-key="@key">
+                    <button type="button" class="navigation-order-handle"
+                            aria-label="@L["DragSidebarEntryArg", title]" title="@L["DragToReorder"]">
+                        <span aria-hidden="true">⠿</span>
+                    </button>
+                    <span class="navigation-order-icon">
+                        <PluginIcon Image="@route.Definition.IconImage" Glyph="@route.Definition.Icon" />
+                    </span>
+                    <span class="navigation-order-title">@title</span>
+                    <div class="navigation-order-actions">
+                        <button type="button" disabled="@(index == 0)" aria-label="@L["MoveSidebarEntryUpArg", title]"
+                                title="@L["MoveUp"]" @onclick="() => Move(key, position - 1)">↑</button>
+                        <button type="button" disabled="@(index == Routes.Count - 1)" aria-label="@L["MoveSidebarEntryDownArg", title]"
+                                title="@L["MoveDown"]" @onclick="() => Move(key, position + 1)">↓</button>
+                    </div>
+                </li>
+            }
+        </ol>
+    }
+    <span class="navigation-order-announcement" role="status">@_announcement</span>
+</section>
+
+@code {
+    private readonly string _dragRegistrationId = Guid.NewGuid().ToString("N");
+    private DotNetObjectReference<NavigationOrderSettings>? _dragReference;
+    private ElementReference _element;
+    private string? _error;
+    private string? _announcement;
+    private bool _disposed;
+
+    private IReadOnlyList<PluginRouteRegistration> Routes { get; set; } = [];
+
+    protected override void OnInitialized()
+    {
+        PluginCatalog.Changed += Refresh;
+        NavigationOrder.Changed += Refresh;
+        CultureService.Changed += Refresh;
+        Routes = NavigationOrder.Apply(PluginCatalog.NavigationRoutes);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_disposed)
+        {
+            _dragReference = DotNetObjectReference.Create(this);
+            await JavaScript.InvokeVoidAsync("quantum.navigationOrder.initialize", _dragRegistrationId, _element, _dragReference);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        PluginCatalog.Changed -= Refresh;
+        NavigationOrder.Changed -= Refresh;
+        CultureService.Changed -= Refresh;
+        try
+        {
+            if (_dragReference is not null)
+            {
+                await JavaScript.InvokeVoidAsync("quantum.navigationOrder.dispose", _dragRegistrationId);
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+            // The WebView already released its pointer listeners.
+        }
+        finally
+        {
+            _dragReference?.Dispose();
+        }
+    }
+
+    [JSInvokable]
+    public Task MoveByPointerAsync(string key, string targetKey, bool after)
+    {
+        return InvokeAsync(() =>
+        {
+            if (_disposed || key == targetKey)
+            {
+                return;
+            }
+
+            var keys = NavigationOrder.Apply(PluginCatalog.NavigationRoutes).Select(PluginNavigationOrder.GetKey).ToList();
+            var source = keys.IndexOf(key);
+            var target = keys.IndexOf(targetKey);
+            if (source < 0 || target < 0)
+            {
+                return;
+            }
+
+            var destination = target + (after ? 1 : 0);
+            Move(key, source < destination ? destination - 1 : destination);
+            StateHasChanged();
+        });
+    }
+
+    private void Move(string key, int index)
+    {
+        Save(() =>
+        {
+            if (NavigationOrder.Move(PluginCatalog.NavigationRoutes, key, index))
+            {
+                Routes = NavigationOrder.Apply(PluginCatalog.NavigationRoutes);
+                var route = Routes.Single(route => PluginNavigationOrder.GetKey(route) == key);
+                _announcement = L["SidebarEntryMovedArg",
+                    route.Definition.GetTitle(CultureService.CurrentCulture) ?? route.PluginId.ToString(),
+                    index + 1, Routes.Count];
+            }
+        });
+    }
+
+    private void Reset() => Save(() =>
+    {
+        NavigationOrder.Reset();
+        _announcement = L["DefaultSidebarOrderRestored"];
+    });
+
+    private void Save(Action action)
+    {
+        _error = null;
+        try
+        {
+            action();
+        }
+        catch (Exception exception)
+        {
+            Logger.LogWarning(exception, "Could not save sidebar order.");
+            _error = L["CouldNotSaveSidebarOrder"];
+        }
+    }
+
+    private void Refresh(object? sender, EventArgs args)
+    {
+        _ = InvokeAsync(() =>
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            Routes = NavigationOrder.Apply(PluginCatalog.NavigationRoutes);
+            StateHasChanged();
+        });
+    }
+}

@@ -2,11 +2,12 @@
 @page "/"
 @inject NavigationManager NavigationManager
 @inject PluginCatalog PluginCatalog
+@inject PluginNavigationOrder NavigationOrder
 
 @code {
     protected override void OnInitialized()
     {
-        var destination = PluginCatalog.NavigationRoutes.FirstOrDefault()?.Definition.Path ?? "/settings";
+        var destination = NavigationOrder.Apply(PluginCatalog.NavigationRoutes).FirstOrDefault()?.Definition.Path ?? "/settings";
         NavigationManager.NavigateTo(destination, replace: true);
     }
 }
