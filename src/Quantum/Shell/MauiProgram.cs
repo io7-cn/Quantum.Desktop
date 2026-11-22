@@ -1,14 +1,16 @@
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using NOF.Hosting;
 using NOF.Hosting.Maui;
+using Quantum.Components;
 using Quantum.Logging;
 using Quantum.Localization;
 using Quantum.Marketplace;
 using Quantum.Mobile.Internal;
 using Quantum.Plugins;
 using Quantum.Storage;
+using Quantum.Updates;
 using Quantum.WebPlugins;
 
 namespace Quantum;
@@ -17,15 +19,19 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
-#if MACCATALYST && !DEBUG
-        DesktopDataMigration.MigrateModules(
-            Path.Combine(FileSystem.AppDataDirectory, "Modules"),
-            Path.Combine(AppContext.BaseDirectory, "Modules"),
-            Path.Combine(Foundation.NSBundle.MainBundle.BundlePath, "Contents", "Resources", "Modules"));
+        DesktopAppStorage.VerifyNativeStorage();
+#if MACCATALYST
+        if (!DesktopBuildProfile.Current.IsPreview)
+        {
+            DesktopDataMigration.MigrateModules(
+                DesktopAppStorage.Paths.ModulesDirectory,
+                Path.Combine(AppContext.BaseDirectory, "Modules"),
+                Path.Combine(Foundation.NSBundle.MainBundle.BundlePath, "Contents", "Resources", "Modules"));
+        }
 #endif
         var loggingOptions = QuantumLoggingOptions.Parse(
             Environment.GetCommandLineArgs(),
-            FileSystem.AppDataDirectory);
+            DesktopAppStorage.Paths.DataDirectory);
         var consoleOutputRequested = loggingOptions.WriteToConsole;
 #if WINDOWS
         if (consoleOutputRequested && !WindowsConsole.TryEnable())
@@ -43,12 +49,19 @@ public static class MauiProgram
             .UseMauiApp<App>();
 
         builder.Services.AddMauiBlazorWebView();
+        if (DesktopBuildProfile.Current.IsPreview)
+        {
+            builder.Services.AddSingleton<IAppUpdateBackend, PreviewUpdateBackend>();
+        }
+        else
+        {
 #if MACCATALYST
-        builder.Services.AddSingleton<Quantum.Updates.IAppUpdateBackend, Quantum.Updates.MacAppUpdateBackend>();
-        builder.Services.AddSingleton<IAppUninstallService, MacAppUninstallService>();
+            builder.Services.AddSingleton<IAppUpdateBackend, MacAppUpdateBackend>();
+            builder.Services.AddSingleton<IAppUninstallService, MacAppUninstallService>();
 #else
-        builder.Services.AddSingleton<Quantum.Updates.IAppUpdateBackend, Quantum.Updates.VelopackUpdateBackend>();
+            builder.Services.AddSingleton<IAppUpdateBackend, VelopackUpdateBackend>();
 #endif
+        }
         builder.Services.AddSingleton<Quantum.Updates.AppUpdateService>();
         builder.Services.AddLocalization();
         var requestedCulture = Preferences.Default.Get(
@@ -57,6 +70,9 @@ public static class MauiProgram
         builder.Services.AddSingleton(new CultureService(
             requestedCulture,
             cultureName => Preferences.Default.Set(CultureService.PreferenceKey, cultureName)));
+        builder.Services.AddSingleton(new PluginNavigationOrder(
+            Preferences.Default.Get(PluginNavigationOrder.PreferenceKey, "[]"),
+            order => Preferences.Default.Set(PluginNavigationOrder.PreferenceKey, order)));
         builder.Services.AddSingleton(
             typeof(IStringLocalizer<>),
             typeof(CultureAwareStringLocalizer<>));
@@ -82,10 +98,10 @@ public static class MauiProgram
             services.GetRequiredService<PluginRuntimeManager>());
         var marketplaceOptions = QuantumMarketplaceOptions.FromEnvironment();
         builder.Services.AddSingleton(marketplaceOptions);
-        builder.Services.AddSingleton(new HttpClient
-        {
-            Timeout = TimeSpan.FromMinutes(5)
-        });
+        var platformClient = marketplaceOptions.IsOffline
+            ? new HttpClient(new OfflinePlatformHttpHandler()) : new HttpClient();
+        platformClient.Timeout = TimeSpan.FromMinutes(5);
+        builder.Services.AddSingleton(platformClient);
         var sessionStorageKey = "quantum.marketplace.session." + Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(marketplaceOptions.BaseAddress.AbsoluteUri)));
         builder.Services.AddSingleton(new QuantumMarketplaceSession(
             async () => await SecureStorage.Default.GetAsync(sessionStorageKey) ??
@@ -121,7 +137,7 @@ public static class MauiProgram
             services.GetRequiredService<HttpClient>(),
             services.GetRequiredService<QuantumMarketplaceSession>(), marketplaceOptions,
             services.GetRequiredService<Quantum.Mobile.MobileActionGateway>(),
-            Path.Combine(FileSystem.AppDataDirectory, "MobileBridgeJournal"),
+            Path.Combine(DesktopAppStorage.Paths.DataDirectory, "MobileBridgeJournal"),
             user => SecureStorage.Default.GetAsync(DesktopRegistrationKey(user)),
             (user, value) => SecureStorage.Default.SetAsync(DesktopRegistrationKey(user), value),
             user => SecureStorage.Default.Remove(DesktopRegistrationKey(user))));
@@ -141,6 +157,10 @@ public static class MauiProgram
                 loggingOptions.GetFilePath(segmentIndex: 0),
                 consoleOutputRequested,
                 loggingOptions.WriteToConsole);
+        nofApp.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Quantum.Startup")
+            .LogInformation("Build profile: {Profile}; identity: {Identity}; data: {Data}; cache: {Cache}; platform offline: {Offline}.",
+                DesktopBuildProfile.Current.Name, AppInfo.Current.PackageName,
+                DesktopAppStorage.Paths.DataDirectory, DesktopAppStorage.Paths.CacheDirectory, marketplaceOptions.IsOffline);
         return nofApp.MauiApp;
     }
 
@@ -149,15 +169,15 @@ public static class MauiProgram
     {
         var configuredPath = Environment.GetEnvironmentVariable("QUANTUM_MODULES_PATH");
         var bundledPath = Path.Combine(AppContext.BaseDirectory, "Modules");
-        var applicationDataPath = Path.Combine(FileSystem.AppDataDirectory, "Modules");
-        var databasePath = Path.Combine(FileSystem.AppDataDirectory, "quantum.db");
-        var preferredPath = !string.IsNullOrWhiteSpace(configuredPath)
-            ? Path.GetFullPath(configuredPath)
+        var applicationDataPath = DesktopAppStorage.Paths.ModulesDirectory;
+        var databasePath = DesktopAppStorage.Paths.DatabasePath;
 #if DEBUG
-            : Directory.Exists(bundledPath) ? bundledPath : applicationDataPath;
+        const bool IsDebug = true;
 #else
-            : applicationDataPath;
+        const bool IsDebug = false;
 #endif
+        var preferredPath = DesktopAppStorage.Paths.ResolveModulesDirectory(
+            DesktopBuildProfile.Current, configuredPath, bundledPath, IsDebug);
 
         try
         {
@@ -165,7 +185,7 @@ public static class MauiProgram
             return (
                 new PluginRuntimeOptions(
                     preferredPath,
-                    Path.Combine(FileSystem.CacheDirectory, "PluginShadow"),
+                    DesktopAppStorage.Paths.ShadowDirectory,
                     databasePath),
                 []);
         }
@@ -176,7 +196,7 @@ public static class MauiProgram
                 return (
                     new PluginRuntimeOptions(
                         applicationDataPath,
-                        Path.Combine(FileSystem.CacheDirectory, "PluginShadow"),
+                        DesktopAppStorage.Paths.ShadowDirectory,
                         databasePath),
                     [new PluginLoadFailure(
                         null,
@@ -188,7 +208,7 @@ public static class MauiProgram
             return (
                     new PluginRuntimeOptions(
                         applicationDataPath,
-                        Path.Combine(FileSystem.CacheDirectory, "PluginShadow"),
+                        DesktopAppStorage.Paths.ShadowDirectory,
                         databasePath),
                 [new PluginLoadFailure(
                     null,

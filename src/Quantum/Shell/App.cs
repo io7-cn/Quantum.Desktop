@@ -1,3 +1,5 @@
+using Quantum.Storage;
+
 namespace Quantum;
 
 public sealed class App(MainPage mainPage) : Microsoft.Maui.Controls.Application
@@ -6,7 +8,7 @@ public sealed class App(MainPage mainPage) : Microsoft.Maui.Controls.Application
     {
         var window = new Window(mainPage)
         {
-            Title = string.Empty,
+            Title = DesktopBuildProfile.Current.IsPreview ? DesktopBuildProfile.Current.ApplicationTitle : string.Empty,
             MinimumWidth = 960,
             MinimumHeight = 640,
             Width = 1280,

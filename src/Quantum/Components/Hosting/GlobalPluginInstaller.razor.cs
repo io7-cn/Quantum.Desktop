@@ -12,8 +12,7 @@ public partial class GlobalPluginInstaller : IAsyncDisposable
     private readonly CancellationTokenSource _lifetime = new();
     private readonly string _dropTargetId = Guid.NewGuid().ToString("N");
     private PluginInstallPreview? _pendingPreview;
-    private string? _operationMessage;
-    private bool _operationSucceeded;
+    private OperationNotice? _notice;
     private bool _isProcessing;
     private bool _disposed;
     private int _fileInputKey;
@@ -91,7 +90,7 @@ public partial class GlobalPluginInstaller : IAsyncDisposable
         }
 
         _isProcessing = true;
-        _operationMessage = null;
+        _notice = null;
         CancellationToken cancellationToken = _lifetime.Token;
         try
         {
@@ -109,8 +108,7 @@ public partial class GlobalPluginInstaller : IAsyncDisposable
         }
         catch (Exception exception) when (!_disposed)
         {
-            _operationSucceeded = false;
-            _operationMessage = L["CouldNotReadPluginZIPArg", exception.Message];
+            _notice = new OperationNotice(L["CouldNotReadPluginZIPArg", exception.Message], IsError: true);
         }
         finally
         {
@@ -156,18 +154,16 @@ public partial class GlobalPluginInstaller : IAsyncDisposable
         }
 
         _isProcessing = true;
-        _operationMessage = null;
+        _notice = null;
         try
         {
             PluginOperationResult result = await PluginRuntimeManager.InstallAsync(preview.PreviewId);
-            _operationSucceeded = result.Succeeded;
-            _operationMessage = result.Message;
+            _notice = new OperationNotice(result.Message, IsError: !result.Succeeded);
             _pendingPreview = null;
         }
         catch (Exception exception) when (!_disposed)
         {
-            _operationSucceeded = false;
-            _operationMessage = L["PluginInstallationFailedArg", exception.Message];
+            _notice = new OperationNotice(L["PluginInstallationFailedArg", exception.Message], IsError: true);
         }
         finally
         {
@@ -177,11 +173,6 @@ public partial class GlobalPluginInstaller : IAsyncDisposable
                 await CancelPreviewAsync();
             }
         }
-    }
-
-    private void DismissMessage()
-    {
-        _operationMessage = null;
     }
 
     private string GetInstallHeading(int count)

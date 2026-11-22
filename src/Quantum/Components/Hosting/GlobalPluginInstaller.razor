@@ -93,12 +93,5 @@
         </div>
     }
 
-    @if (!string.IsNullOrWhiteSpace(_operationMessage))
-    {
-        <div class="global-operation-message @(_operationSucceeded ? "success" : "error")"
-             role="status">
-            <span>@_operationMessage</span>
-            <button type="button" aria-label="@L["DismissMessage"]" @onclick="DismissMessage">×</button>
-        </div>
-    }
+    <OperationToast @bind-Notice="_notice" />
 </div>

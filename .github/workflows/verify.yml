@@ -25,7 +25,16 @@ jobs:
         with:
           node-version: '24'
       - run: dotnet test tests/Quantum.Tests/Quantum.Tests.csproj -c Release -p:QuantumCoreOnly=true
-      - run: node --test tests/web-plugin-host.test.mjs
+      - run: dotnet test tests/Quantum.Tests/Quantum.Tests.csproj -c Release -p:QuantumCoreOnly=true -p:QuantumBuildProfile=Stable
+      - run: node --test tests/*.test.mjs
+      - name: Check navigation and notification formatting
+        run: >-
+          npx --yes prettier@3.6.2 --config .standards/templates/repository/.prettierrc.json --check
+          src/Quantum/wwwroot/navigationOrder.js src/Quantum/wwwroot/operationToast.js
+          src/Quantum/Components/Navigation/NavigationOrderSettings.razor.css
+          src/Quantum/Components/Notifications/OperationToast.razor.css
+          src/Quantum/Components/Layout/MainLayout.razor.css
+          tests/navigation-order.test.mjs tests/operation-toast.test.mjs
       - run: npm ci
         working-directory: tests/Fixtures/Plugins/Quantum.ExampleWebPlugin
       - run: npm test
@@ -56,9 +65,18 @@ jobs:
           export TMPDIR="$RUNNER_TEMP/quantum-mac-ci/tmp"
           dotnet workload install maui-maccatalyst --skip-manifest-update
           dotnet test "$GITHUB_WORKSPACE/tests/Quantum.Tests/Quantum.Tests.csproj" -c Release -p:QuantumCoreOnly=true
-          dotnet build "$GITHUB_WORKSPACE/src/Quantum/Quantum.csproj" -c Release -f net10.0-maccatalyst -r '${{ matrix.runtime }}' -p:EnableCodeSigning=false -p:CreatePackage=false -p:QuantumDirectDistribution=true
-          bundle="$GITHUB_WORKSPACE/src/Quantum/bin/Release/net10.0-maccatalyst/${{ matrix.runtime }}/Quantum.app"
-          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$bundle/Contents/Info.plist")" = io.quantum.desktop
+          for profile in Preview Stable; do
+            dotnet build "$GITHUB_WORKSPACE/src/Quantum/Quantum.csproj" -c Release -f net10.0-maccatalyst -r '${{ matrix.runtime }}' -p:QuantumBuildProfile="$profile" -p:EnableCodeSigning=false -p:CreatePackage=false -p:QuantumDirectDistribution=true
+            title=Quantum
+            expected=io.quantum.desktop
+            if [ "$profile" = Preview ]; then
+              title='Quantum Preview'
+              expected=io.quantum.desktop.preview
+            fi
+            bundle="$GITHUB_WORKSPACE/src/Quantum/bin/$profile/Release/net10.0-maccatalyst/${{ matrix.runtime }}/$title.app"
+            test -f "$bundle/Contents/Info.plist"
+            test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$bundle/Contents/Info.plist")" = "$expected"
+          done
 
   test:
     needs: [core-tests, macos]
@@ -69,6 +87,8 @@ jobs:
 
   windows:
     runs-on: windows-latest
+    env:
+      NATIVE_SDK_VERSION: '10.0.100'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -76,7 +96,28 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: ${{ env.NATIVE_SDK_VERSION }}
+      - name: Select the native build SDK
+        shell: pwsh
+        run: |
+          @{ sdk = @{ version = $env:NATIVE_SDK_VERSION; rollForward = 'disable'; allowPrerelease = $false } } |
+            ConvertTo-Json | Set-Content -LiteralPath global.json -Encoding utf8
+          dotnet --version
       - run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/Quantum.Tests/Platforms/Windows/Uninstall.Tests.ps1
       - run: dotnet workload install maui-windows --skip-manifest-update
       - run: dotnet build src/Quantum/Quantum.csproj -c Debug -f net10.0-windows10.0.19041.0
+      - run: dotnet build src/Quantum/Quantum.csproj -c Release -f net10.0-windows10.0.19041.0
+      - run: dotnet build src/Quantum/Quantum.csproj -c Release -f net10.0-windows10.0.19041.0 -p:QuantumBuildProfile=Stable
+      - name: Verify Windows profile identities and uninstall separation
+        shell: pwsh
+        run: |
+          foreach ($build in @(@('Preview', 'Debug'), @('Preview', 'Release'), @('Stable', 'Release'))) {
+            $profile, $configuration = $build
+            $expected = if ($profile -eq 'Preview') { 'io.quantum.desktop.preview' } else { 'io.quantum.desktop' }
+            $intermediate = "src/Quantum/obj/$profile/$configuration/net10.0-windows10.0.19041.0/win-x64"
+            [xml]$manifest = Get-Content "$intermediate/resizetizer/m/Package.appxmanifest" -Raw
+            $identity = $manifest.DocumentElement.SelectSingleNode("*[local-name()='Identity']").GetAttribute('Name')
+            if ($identity -cne $expected) { throw "Wrong $profile identity: $identity" }
+            $uninstaller = Test-Path "src/Quantum/bin/$profile/$configuration/net10.0-windows10.0.19041.0/win-x64/Uninstall.ps1"
+            if ($uninstaller -ne ($profile -eq 'Stable')) { throw "Wrong $profile uninstall script" }
+          }

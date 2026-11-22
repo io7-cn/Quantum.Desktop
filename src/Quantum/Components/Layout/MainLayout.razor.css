@@ -1,5 +1,30 @@
 .sidebar {
   --settings-nav-accent: #6d5a96;
+  overflow: hidden;
+}
+
+.sidebar nav {
+  flex: 1 1 0;
+  min-height: 0;
+  width: calc(100% + 28px);
+  margin-bottom: 4px;
+  padding: 0 10px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-padding-block: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #c9c1d8 transparent;
+}
+
+.sidebar nav::-webkit-scrollbar {
+  display: block;
+  width: 6px;
+}
+
+.sidebar nav::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: #c9c1d8;
 }
 
 .sidebar ::deep .settings-nav-item {

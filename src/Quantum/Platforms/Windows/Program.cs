@@ -1,3 +1,5 @@
+using Quantum.Storage;
+
 namespace Quantum.WinUI;
 
 public static class Program
@@ -5,15 +7,19 @@ public static class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        // Install/update hooks must run before WinUI or the plugin host starts.
-        Velopack.VelopackApp.Build()
-            .SetAutoApplyOnStartup(false)
-            .OnAfterUpdateFastCallback(_ => WindowsDesktopStorage.RegisterUninstaller())
-            .Run();
-        if (!WindowsDesktopStorage.Initialize())
+        DesktopAppStorage.ConfigureProcess();
+        // Only production builds may inspect or migrate the production installation.
+        if (!DesktopBuildProfile.Current.IsPreview)
         {
-            Environment.ExitCode = 1;
-            return;
+            Velopack.VelopackApp.Build()
+                .SetAutoApplyOnStartup(false)
+                .OnAfterUpdateFastCallback(_ => WindowsDesktopStorage.RegisterUninstaller())
+                .Run();
+            if (!WindowsDesktopStorage.Initialize())
+            {
+                Environment.ExitCode = 1;
+                return;
+            }
         }
 
         WinRT.ComWrappersSupport.InitializeComWrappers();

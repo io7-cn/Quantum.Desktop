@@ -14,7 +14,7 @@ internal sealed class MacAppUninstallService(
     AppUpdateService updates,
     ILogger<MacAppUninstallService> logger) : IAppUninstallService
 {
-    public bool IsAvailable => File.Exists(Path.Combine(
+    public bool IsAvailable => !DesktopBuildProfile.Current.IsPreview && File.Exists(Path.Combine(
         NSBundle.MainBundle.BundlePath, "Contents", "Helpers", "Quantum.UpdateAgent", "Quantum.UpdateAgent"));
     public bool IsBusy { get; private set; }
 

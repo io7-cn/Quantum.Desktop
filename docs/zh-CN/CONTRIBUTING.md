@@ -12,6 +12,8 @@ GitHub Actions 的 `standards`、`test` 和 `windows` 检查必须通过，拉�
 
 `test` 门禁要求 Linux 核心测试、macOS 存储测试，以及 Apple Silicon 和 Intel 的未签名 Catalyst Release 构建全部通过。签名和安装包验收仍属于发布检查。
 
+原生 CI 显式选择 .NET SDK 10.0.100，避免运行器预装的较新 SDK 改变 MAUI 工作负载解析。macOS 应用包检查使用对应配置的应用标题：Preview 为 `Quantum Preview.app`，Stable 为 `Quantum.app`。
+
 ## 插件能力
 
 变更公开插件能力时，同时检查 .NET SDK、TypeScript SDK 和宿主适配层，更新相关测试及受影响桌面文档的英文版和简体中文版。贡献遵循 [Apache License 2.0 许可证](../../LICENSE)。
