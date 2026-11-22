@@ -12,6 +12,8 @@ The GitHub Actions checks `standards`, `test` and `windows` are required, and th
 
 The `test` gate requires Linux core tests plus macOS storage tests and unsigned Catalyst Release builds for Apple Silicon and Intel. Signing and installer acceptance remain release checks.
 
+Native CI explicitly selects .NET SDK 10.0.100 so newer SDKs preinstalled on the runners cannot change MAUI workload resolution. macOS bundle checks use the profile's application title: `Quantum Preview.app` for Preview and `Quantum.app` for Stable.
+
 ## Plugin capabilities
 
 When changing a public plugin capability, review the .NET SDK, the TypeScript SDK and the host adapters together. Update the affected tests and both editions of each affected Desktop document. Contributions follow the [Apache License 2.0](../../LICENSE).

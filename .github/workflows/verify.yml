@@ -67,9 +67,14 @@ jobs:
           dotnet test "$GITHUB_WORKSPACE/tests/Quantum.Tests/Quantum.Tests.csproj" -c Release -p:QuantumCoreOnly=true
           for profile in Preview Stable; do
             dotnet build "$GITHUB_WORKSPACE/src/Quantum/Quantum.csproj" -c Release -f net10.0-maccatalyst -r '${{ matrix.runtime }}' -p:QuantumBuildProfile="$profile" -p:EnableCodeSigning=false -p:CreatePackage=false -p:QuantumDirectDistribution=true
-            bundle="$GITHUB_WORKSPACE/src/Quantum/bin/$profile/Release/net10.0-maccatalyst/${{ matrix.runtime }}/Quantum.app"
+            title=Quantum
             expected=io.quantum.desktop
-            if [ "$profile" = Preview ]; then expected=io.quantum.desktop.preview; fi
+            if [ "$profile" = Preview ]; then
+              title='Quantum Preview'
+              expected=io.quantum.desktop.preview
+            fi
+            bundle="$GITHUB_WORKSPACE/src/Quantum/bin/$profile/Release/net10.0-maccatalyst/${{ matrix.runtime }}/$title.app"
+            test -f "$bundle/Contents/Info.plist"
             test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$bundle/Contents/Info.plist")" = "$expected"
           done
 
@@ -82,6 +87,8 @@ jobs:
 
   windows:
     runs-on: windows-latest
+    env:
+      NATIVE_SDK_VERSION: '10.0.100'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -89,7 +96,13 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: ${{ env.NATIVE_SDK_VERSION }}
+      - name: Select the native build SDK
+        shell: pwsh
+        run: |
+          @{ sdk = @{ version = $env:NATIVE_SDK_VERSION; rollForward = 'disable'; allowPrerelease = $false } } |
+            ConvertTo-Json | Set-Content -LiteralPath global.json -Encoding utf8
+          dotnet --version
       - run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/Quantum.Tests/Platforms/Windows/Uninstall.Tests.ps1
       - run: dotnet workload install maui-windows --skip-manifest-update
       - run: dotnet build src/Quantum/Quantum.csproj -c Debug -f net10.0-windows10.0.19041.0
