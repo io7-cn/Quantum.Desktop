@@ -4,7 +4,7 @@
 
 ## Components and startup
 
-The host groups source by technical responsibility. `Shell` contains startup and the native window. `Components` separates routed pages, views, layouts, navigation and hosting. `Networking` separates platform API calls and sessions from the device relay. `Plugins` contains catalog discovery, runtime, installation, assets, events, persistence, RPC, Web integration and remote view adapters. Platform entry points and metadata are under `Platforms`.
+The host groups source by technical responsibility. `Shell` contains startup and the native window. `Components` separates routed pages, views, layouts, navigation, notifications and hosting. `Networking` separates platform API calls and sessions from the device relay. `Plugins` contains catalog discovery, runtime, installation, assets, events, persistence, RPC, Web integration and remote view adapters. Platform entry points and metadata are under `Platforms`.
 
 `Quantum.csproj` contains the MAUI entry point, Blazor UI, plugin model, loading and browser adapters. It builds the same plugin sources for plain `net10.0` tests and API reference generation. The public .NET ABI (the assembly-level compatibility boundary) is `Quantum.Plugin.Abstraction`. The SDK and host use strings for plugin IDs, semantic versions, version ranges and event topics. Validation and version comparisons use explicit helpers. Quantum Platform is separately deployed and exposes account, marketplace and mobile relay services via `/rpc`, outside the plugin ABI.
 
@@ -20,6 +20,10 @@ The compact sidebar keeps plugin routes above the marketplace and settings links
 Settings > Plugins contains a Sidebar order list with drag handles, keyboard-accessible up/down buttons and Restore default order. Changes immediately update the sidebar and startup destination and are saved in the device's preferences. Order is associated with each plugin ID and page path, independently of plugin loading and dependency order. Temporarily absent entries retain their saved positions; new entries follow the saved entries in manifest order. Restoring defaults removes the custom ordering. The plugin portion of the sidebar scrolls independently when it exceeds the window height; marketplace and settings remain at the bottom.
 
 Handle dragging uses pointer capture rather than HTML drag-and-drop, so it does not depend on the native WebView's drag transport or trigger the ZIP installer. A preview follows the pointer, insertion lines identify the destination, and the page scrolls near the viewport edges. Mouse and touch share the same path. Releasing commits one move through Blazor using stable entry keys; Escape, pointer cancellation, focus loss and component disposal cancel without saving. Catalog changes are revalidated before applying a drop.
+
+## Operation notifications
+
+The bottom-right ZIP installation result uses `Components/Notifications/OperationToast`. Success messages fade out after four seconds and errors after eight seconds, with a 180ms opacity transition (disabled for reduced motion). Hovering or focusing the message pauses its remaining display time; leaving resumes it. The close button remains available. A new result receives a fresh timer even when its text is unchanged. Replacement, manual dismissal and component disposal cancel old timers and listeners. Installation progress and confirmation dialogs retain their existing lifecycle. This behavior applies to Desktop's installation result, not separately deployed Platform pages.
 
 ## Data and calls
 

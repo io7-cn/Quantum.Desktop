@@ -26,12 +26,14 @@ jobs:
           node-version: '24'
       - run: dotnet test tests/Quantum.Tests/Quantum.Tests.csproj -c Release -p:QuantumCoreOnly=true
       - run: node --test tests/*.test.mjs
-      - name: Check navigation formatting
+      - name: Check navigation and notification formatting
         run: >-
           npx --yes prettier@3.6.2 --config .standards/templates/repository/.prettierrc.json --check
-          src/Quantum/wwwroot/navigationOrder.js
+          src/Quantum/wwwroot/navigationOrder.js src/Quantum/wwwroot/operationToast.js
           src/Quantum/Components/Navigation/NavigationOrderSettings.razor.css
-          tests/navigation-order.test.mjs
+          src/Quantum/Components/Notifications/OperationToast.razor.css
+          src/Quantum/Components/Layout/MainLayout.razor.css
+          tests/navigation-order.test.mjs tests/operation-toast.test.mjs
       - run: npm ci
         working-directory: tests/Fixtures/Plugins/Quantum.ExampleWebPlugin
       - run: npm test

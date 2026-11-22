@@ -13,7 +13,7 @@ macOS 保留 MAUI 在应用包之外的 Library 存储，通过可恢复的目�
 ```text
 Quantum
     |-- Shell
-    |-- Components (Hosting, Layout, Navigation, Pages, Views)
+    |-- Components (Hosting, Layout, Navigation, Notifications, Pages, Views)
     |-- Networking (Platform, Relay)
     |-- Plugins (Assets, Catalog, Events, Installation, Persistence, RemoteViews, Rpc, Runtime, Web)
     |-- Logging, Localization, Updates
@@ -33,6 +33,10 @@ Quantum
 「设置 → 插件」提供「侧栏顺序」列表，支持拖动手柄、可通过键盘操作的上移／下移按钮及恢复默认顺序。修改立即更新侧栏和启动时打开的页面，并自动保存到此设备的偏好设置。顺序按插件 ID 与页面路径标识，与插件加载及依赖顺序独立；暂时不可用的入口保留原位置，新入口按清单默认顺序排在已保存入口之后。恢复默认会清除自定义排序。插件区超出窗口高度时独立滚动，市场和设置保持在底部。
 
 手柄拖动使用指针捕获，不依赖 HTML 原生拖放或 WebView 的系统拖放传输，也不会触发 ZIP 安装浮层。拖动时显示跟随指针的预览和插入线，靠近窗口边缘时自动滚动页面；鼠标与触控共用此逻辑。松开后按稳定入口标识向 Blazor 提交一次移动；按 Escape、指针取消、窗口失焦或组件释放都会取消拖动且不保存。提交时再次核对插件目录，忽略已经消失的入口。
+
+## 操作提示
+
+右下角 ZIP 安装结果使用 `Components/Notifications/OperationToast`。成功提示显示四秒、错误提示显示八秒后淡出，透明度过渡为 180ms；减少动态效果时关闭过渡。鼠标悬停或键盘焦点进入提示框时暂停剩余显示时间，离开后继续计时；保留关闭按钮。新结果即使文字相同也重新计时。消息替换、手动关闭和组件释放都会取消旧计时器及事件监听。安装进度和确认对话框沿用原有生命周期。此规则适用于 Desktop 安装结果，不会改变独立部署的平台页面。
 
 ## 启动顺序
 

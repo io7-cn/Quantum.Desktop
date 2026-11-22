@@ -1,0 +1,9 @@
+@namespace Quantum.Components
+
+@if (Notice is { } notice)
+{
+    <div @ref="_element" class="operation-toast @(notice.IsError ? "error" : "success")" role="status">
+        <span>@notice.Message</span>
+        <button type="button" aria-label="@L["DismissMessage"]" @onclick="() => DismissAsync(notice.Id)">×</button>
+    </div>
+}
